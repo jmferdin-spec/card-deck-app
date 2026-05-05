@@ -41,7 +41,9 @@ body {
 }
 
 .card-back {
-  background: linear-gradient(135deg, #444, #111);
+  background: 
+    linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)),
+    url("./assets/back.png") center/cover no-repeat;
   border-radius: 10px;
 }
 
