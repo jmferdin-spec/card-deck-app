@@ -179,3 +179,26 @@ select {
 .card.no-anim .card-inner {
   transition: none !important;
 }
+
+/* Shuffle animation */
+.card.shuffle {
+  animation: shuffleScatter 0.5s ease;
+}
+
+@keyframes shuffleScatter {
+  0% {
+    transform: translate(0,0) rotate(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(
+      calc(20px - 40px * var(--randX)),
+      calc(20px - 40px * var(--randY))
+    ) rotate(calc(20deg - 40deg * var(--randR)));
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(0,0) rotate(0);
+    opacity: 1;
+  }
+}
