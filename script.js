@@ -40,21 +40,27 @@ function shuffleDeck() {
   const cards = document.querySelectorAll(".card");
 
   cards.forEach(card => {
+    // random values for scatter
+    card.style.setProperty("--randX", Math.random());
+    card.style.setProperty("--randY", Math.random());
+    card.style.setProperty("--randR", Math.random());
+
     card.classList.add("shuffle");
   });
 
   setTimeout(() => {
+    // Fisher-Yates
     for (let i = remainingDeck.length - 1; i > 0; i--) {
       let j = Math.floor(Math.random() * (i + 1));
       [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
     }
 
     pickedCards = [];
-    lastPickedCardId = null; // ✅ ADD THIS
+    lastPickedCardId = null;
     mode = "deck";
 
     render();
-  }, 400);
+  }, 500);
 }
 
 /* PICK CARD */
