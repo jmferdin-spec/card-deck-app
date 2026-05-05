@@ -43,13 +43,13 @@ function shuffleDeck() {
     return;
   }
 
-  // Only animate the deck stack, not the suit rows (cleaner visually)
-  const deckCards = document.querySelectorAll("#deck .card");
-  if (deckCards.length === 0) {
-    // First shuffle from grid mode — animate the grid cards briefly
-    document.querySelectorAll(".card").forEach(c => c.classList.add("shuffle"));
+  // In grid mode, animate the suit-row cards. In deck mode, animate the deck stack.
+  if (mode === "grid") {
+    document.querySelectorAll("#hearts .card, #spades .card")
+      .forEach(c => c.classList.add("shuffle"));
   } else {
-    deckCards.forEach(c => c.classList.add("shuffle"));
+    document.querySelectorAll("#deck .card")
+      .forEach(c => c.classList.add("shuffle"));
   }
 
   setTimeout(() => {
