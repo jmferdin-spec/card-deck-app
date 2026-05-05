@@ -1,1 +1,213 @@
-const values = ["A","2","3","4","5","6","7","8","9","10"]; const suits = ["hearts", "spades"]; let fullDeck = []; let remainingDeck = []; let pickedCards = []; let mode = "grid"; let lastPickedCardId = null; /* LOGOS */ const logos = [ { id: "default", name: "Default", path: null }, { id: "cowboys", name: "Cowboys", path: "./assets/logos/cowboys.png" } ]; let selectedThemes = { hearts: "default", spades: "default" }; /* CREATE DECK */ function createDeck() { fullDeck = []; suits.forEach(suit => { values.forEach(value => { fullDeck.push({ suit, value, id: suit + value }); }); }); remainingDeck = [...fullDeck]; } /* SHUFFLE */ function shuffleDeck() { const cards = document.querySelectorAll(".card"); // Animate cards cards.forEach(card => { card.classList.add("shuffle"); }); setTimeout(() => { // Shuffle logic for (let i = remainingDeck.length - 1; i > 0; i--) { let j = Math.floor(Math.random() * (i + 1)); [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]]; } pickedCards = []; lastPickedCardId = null; mode = "deck"; render(); }, 500); } /* PICK CARD */ function pickCard() { if (remainingDeck.length === 0) return; const card = remainingDeck.shift(); pickedCards.push(card); lastPickedCardId = card.id; render(); } /* RESET */ function resetDeck() { createDeck(); pickedCards = []; lastPickedCardId = null; mode = "grid"; render(); } /* GET LOGO */ function getLogo(suit) { const themeId = selectedThemes[suit]; const logo = logos.find(l => l.id === themeId); return logo?.path; } /* CARD SVG */ function createCardSVG(card) { const color = card.suit === "hearts" ? "red" : "black"; const logo = getLogo(card.suit); return <svg viewBox="0 0 100 150"> <rect width="100" height="150" rx="10" fill="white" stroke="black"/> <text x="8" y="18" fill="${color}" font-size="12">${card.value}</text> <text x="8" y="32" fill="${color}">${card.suit === "hearts" ? "♥" : "♠"}</text> <text x="92" y="142" fill="${color}" font-size="12" text-anchor="end">${card.value}</text> ${ logo ? <image href="${logo}" x="20" y="40" width="60" height="70" preserveAspectRatio="xMidYMid slice"/> : <text x="50" y="80" text-anchor="middle" font-size="40" fill="${color}"> ${card.suit === "hearts" ? "♥" : "♠"} </text> } </svg>; } /* RENDER */ function render() { const deckDiv = document.getElementById("deck"); const heartsDiv = document.getElementById("hearts"); const spadesDiv = document.getElementById("spades"); deckDiv.innerHTML = ""; heartsDiv.innerHTML = ""; spadesDiv.innerHTML = ""; // GRID MODE if (mode === "grid") { fullDeck.forEach(card => { const cardEl = createCardElement(card, true); if (card.suit === "hearts") { heartsDiv.appendChild(cardEl); } else { spadesDiv.appendChild(cardEl); } }); } // DECK MODE if (mode === "deck") { // Show stacked deck (top 3 cards) remainingDeck.slice(0, 3).forEach(card => { const cardEl = createCardElement(card, false); deckDiv.appendChild(cardEl); }); // Show picked cards pickedCards.forEach(card => { const cardEl = createCardElement(card, true); if (card.suit === "hearts") { heartsDiv.appendChild(cardEl); } else { spadesDiv.appendChild(cardEl); } }); } } /* CARD ELEMENT */ function createCardElement(card, flipped) { const cardEl = document.createElement("div"); cardEl.className = "card"; cardEl.innerHTML = <div class="card-inner"> <div class="card-front"> ${createCardSVG(card)} </div> <div class="card-back"></div> </div> ; if (flipped) { if (card.id === lastPickedCardId) { // Animate ONLY newest card cardEl.classList.add("deal-in"); setTimeout(() => { cardEl.classList.add("flipped"); }, 120); } else { // Old cards = no animation cardEl.classList.add("no-anim"); cardEl.classList.add("flipped"); } } return cardEl; } /* DROPDOWNS */ function initThemes() { const heartsSelect = document.getElementById("heartsTheme"); const spadesSelect = document.getElementById("spadesTheme"); logos.forEach(l => { heartsSelect.add(new Option(l.name, l.id)); spadesSelect.add(new Option(l.name, l.id)); }); heartsSelect.onchange = (e) => { selectedThemes.hearts = e.target.value; render(); }; spadesSelect.onchange = (e) => { selectedThemes.spades = e.target.value; render(); }; } /* INIT */ createDeck(); initThemes(); render(); document.getElementById("deck").addEventListener("click", pickCard);
+const values = ["A","2","3","4","5","6","7","8","9","10"];
+const suits = ["hearts", "spades"];
+
+let fullDeck = [];
+let remainingDeck = [];
+let pickedCards = [];
+
+let mode = "grid";
+let lastPickedCardId = null;
+
+/* LOGOS */
+const logos = [
+  { id: "default", name: "Default", path: null },
+  { id: "cowboys", name: "Cowboys", path: "./assets/logos/cowboys.png" }
+];
+
+let selectedThemes = {
+  hearts: "default",
+  spades: "default"
+};
+
+/* CREATE DECK */
+function createDeck() {
+  fullDeck = [];
+  suits.forEach(suit => {
+    values.forEach(value => {
+      fullDeck.push({
+        suit,
+        value,
+        id: suit + value
+      });
+    });
+  });
+  remainingDeck = [...fullDeck];
+}
+
+/* SHUFFLE */
+function shuffleDeck() {
+  const cards = document.querySelectorAll(".card");
+
+  cards.forEach(card => {
+    card.classList.add("shuffle");
+  });
+
+  setTimeout(() => {
+    for (let i = remainingDeck.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
+    }
+
+    pickedCards = [];
+    lastPickedCardId = null;
+    mode = "deck";
+
+    render();
+  }, 500);
+}
+
+/* PICK CARD */
+function pickCard() {
+  if (remainingDeck.length === 0) return;
+
+  const card = remainingDeck.shift();
+  pickedCards.push(card);
+  lastPickedCardId = card.id;
+
+  render();
+}
+
+/* RESET */
+function resetDeck() {
+  createDeck();
+  pickedCards = [];
+  lastPickedCardId = null;
+  mode = "grid";
+  render();
+}
+
+/* GET LOGO */
+function getLogo(suit) {
+  const themeId = selectedThemes[suit];
+  const logo = logos.find(l => l.id === themeId);
+  return logo?.path;
+}
+
+/* CARD SVG */
+function createCardSVG(card) {
+  const color = card.suit === "hearts" ? "red" : "black";
+  const logo = getLogo(card.suit);
+
+  return `
+  <svg viewBox="0 0 100 150">
+    <rect width="100" height="150" rx="10" fill="white" stroke="black"/>
+
+    <text x="8" y="18" fill="${color}" font-size="12">${card.value}</text>
+    <text x="8" y="32" fill="${color}">${card.suit === "hearts" ? "♥" : "♠"}</text>
+
+    <text x="92" y="142" fill="${color}" font-size="12" text-anchor="end">${card.value}</text>
+
+    ${
+      logo
+      ? `<image href="${logo}" x="20" y="40" width="60" height="70" preserveAspectRatio="xMidYMid slice"/>`
+      : `<text x="50" y="80" text-anchor="middle" font-size="40" fill="${color}">
+          ${card.suit === "hearts" ? "♥" : "♠"}
+        </text>`
+    }
+  </svg>`;
+}
+
+/* RENDER */
+function render() {
+  const deckDiv = document.getElementById("deck");
+  const heartsDiv = document.getElementById("hearts");
+  const spadesDiv = document.getElementById("spades");
+
+  deckDiv.innerHTML = "";
+  heartsDiv.innerHTML = "";
+  spadesDiv.innerHTML = "";
+
+  if (mode === "grid") {
+    fullDeck.forEach(card => {
+      const cardEl = createCardElement(card, true);
+      (card.suit === "hearts" ? heartsDiv : spadesDiv).appendChild(cardEl);
+    });
+  }
+
+  if (mode === "deck") {
+    remainingDeck.slice(0, 3).forEach(card => {
+      const cardEl = createCardElement(card, false);
+      deckDiv.appendChild(cardEl);
+    });
+
+    pickedCards.forEach(card => {
+      const cardEl = createCardElement(card, true);
+      (card.suit === "hearts" ? heartsDiv : spadesDiv).appendChild(cardEl);
+    });
+  }
+}
+
+/* CARD ELEMENT */
+function createCardElement(card, flipped) {
+  const cardEl = document.createElement("div");
+  cardEl.className = "card";
+
+  cardEl.innerHTML = `
+    <div class="card-inner">
+      <div class="card-front">
+        ${createCardSVG(card)}
+      </div>
+      <div class="card-back"></div>
+    </div>
+  `;
+
+  if (flipped) {
+    if (card.id === lastPickedCardId) {
+      cardEl.classList.add("deal-in");
+
+      setTimeout(() => {
+        cardEl.classList.add("flipped");
+      }, 120);
+    } else {
+      cardEl.classList.add("no-anim");
+      cardEl.classList.add("flipped");
+    }
+  }
+
+  return cardEl;
+}
+
+/* DROPDOWNS */
+function initThemes() {
+  const heartsSelect = document.getElementById("heartsTheme");
+  const spadesSelect = document.getElementById("spadesTheme");
+
+  logos.forEach(l => {
+    heartsSelect.add(new Option(l.name, l.id));
+    spadesSelect.add(new Option(l.name, l.id));
+  });
+}
+
+/* OPTIONS MODAL FUNCTIONS */
+function openOptions() {
+  document.getElementById("optionsModal").classList.remove("hidden");
+}
+
+function closeOptions() {
+  document.getElementById("optionsModal").classList.add("hidden");
+}
+
+function applyThemes() {
+  selectedThemes.hearts = document.getElementById("heartsTheme").value;
+  selectedThemes.spades = document.getElementById("spadesTheme").value;
+
+  updateLabels();
+  render();
+  closeOptions();
+}
+
+function updateLabels() {
+  document.getElementById("heartsLabel").textContent =
+    logos.find(l => l.id === selectedThemes.hearts)?.name || "Hearts";
+
+  document.getElementById("spadesLabel").textContent =
+    logos.find(l => l.id === selectedThemes.spades)?.name || "Spades";
+}
+
+/* INIT */
+createDeck();
+initThemes();
+updateLabels();
+render();
+
+document.getElementById("deck").addEventListener("click", pickCard);
