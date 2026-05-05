@@ -33,12 +33,30 @@ function createDeck() {
 
 /* SHUFFLE */
 function shuffleDeck() {
-  for (let i = remainingDeck.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
-    [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
-  }
-  pickedCards = [];
-  render();
+  const cards = document.querySelectorAll(".card");
+
+  // Add animation class
+  cards.forEach(card => {
+    card.classList.add("shuffle");
+  });
+
+  // Wait for animation, then shuffle
+  setTimeout(() => {
+    for (let i = remainingDeck.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
+    }
+
+    pickedCards = [];
+
+    render();
+
+    // Remove animation class after render
+    document.querySelectorAll(".card").forEach(card => {
+      card.classList.remove("shuffle");
+    });
+
+  }, 400);
 }
 
 /* PICK CARD */
