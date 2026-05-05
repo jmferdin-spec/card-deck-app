@@ -160,6 +160,11 @@ function createCardElement(card, flipped) {
   const cardEl = document.createElement("div");
   cardEl.className = "card";
 
+  // If it's NOT the newest card → disable animation
+  if (card.id !== lastPickedCardId) {
+    cardEl.classList.add("no-anim");
+  }
+
   cardEl.innerHTML = `
     <div class="card-inner">
       <div class="card-front">
@@ -172,9 +177,11 @@ function createCardElement(card, flipped) {
   if (flipped) {
     if (card.id === lastPickedCardId) {
       // Animate ONLY newest card
-      setTimeout(() => cardEl.classList.add("flipped"), 50);
+      setTimeout(() => {
+        cardEl.classList.add("flipped");
+      }, 50);
     } else {
-      // Instantly show already-picked cards
+      // Instantly flipped, NO animation
       cardEl.classList.add("flipped");
     }
   }
