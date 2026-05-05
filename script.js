@@ -5,6 +5,10 @@ let fullDeck = [];
 let remainingDeck = [];
 let pickedCards = [];
 
+let mode = "grid"; 
+// "grid" = show all cards
+// "deck" = show stacked deck
+
 /* PRELOAD LOGOS (PUT FILES IN /assets/logos/) */
 const logos = [
   { id: "default", name: "Default", path: null },
@@ -40,8 +44,8 @@ function shuffleDeck() {
     card.classList.add("shuffle");
   });
 
-  // Wait for animation, then shuffle
   setTimeout(() => {
+    // Fisher-Yates shuffle
     for (let i = remainingDeck.length - 1; i > 0; i--) {
       let j = Math.floor(Math.random() * (i + 1));
       [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
@@ -49,12 +53,10 @@ function shuffleDeck() {
 
     pickedCards = [];
 
-    render();
+    // SWITCH TO DECK MODE
+    mode = "deck";
 
-    // Remove animation class after render
-    document.querySelectorAll(".card").forEach(card => {
-      card.classList.remove("shuffle");
-    });
+    render();
 
   }, 400);
 }
@@ -82,6 +84,7 @@ function pickCard() {
 function resetDeck() {
   createDeck();
   pickedCards = [];
+  mode = "grid";  // show all cards again
   render();
 }
 
@@ -126,22 +129,40 @@ function render() {
   heartsDiv.innerHTML = "";
   spadesDiv.innerHTML = "";
 
-  // SHOW DECK (top 3 cards stacked)
-  remainingDeck.slice(0, 3).forEach(card => {
-    const cardEl = createCardElement(card, false);
-    deckDiv.appendChild(cardEl);
-  });
+  // =========================
+  // GRID MODE (initial)
+  // =========================
+  if (mode === "grid") {
+    fullDeck.forEach(card => {
+      const cardEl = createCardElement(card, true);
 
-  // SHOW PICKED CARDS
-  pickedCards.forEach(card => {
-    const cardEl = createCardElement(card, true);
+      if (card.suit === "hearts") {
+        heartsDiv.appendChild(cardEl);
+      } else {
+        spadesDiv.appendChild(cardEl);
+      }
+    });
+  }
 
-    if (card.suit === "hearts") {
-      heartsDiv.appendChild(cardEl);
-    } else {
-      spadesDiv.appendChild(cardEl);
-    }
-  });
+  // =========================
+  // DECK MODE (after shuffle)
+  // =========================
+  if (mode === "deck") {
+    remainingDeck.slice(0, 3).forEach(card => {
+      const cardEl = createCardElement(card, false);
+      deckDiv.appendChild(cardEl);
+    });
+
+    pickedCards.forEach(card => {
+      const cardEl = createCardElement(card, true);
+
+      if (card.suit === "hearts") {
+        heartsDiv.appendChild(cardEl);
+      } else {
+        spadesDiv.appendChild(cardEl);
+      }
+    });
+  }
 }
 
 function createCardElement(card, flipped) {
