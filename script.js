@@ -139,9 +139,9 @@ function render() {
       </div>
     `;
 
-    if (pickedCards.length) {
-      setTimeout(() => cardEl.classList.add("flipped"), 10);
-    }
+    if (pickedCards.includes(card)) {
+  setTimeout(() => cardEl.classList.add("flipped"), 10);
+}
 
     if (card.suit === "hearts") {
       heartsDiv.appendChild(cardEl);
