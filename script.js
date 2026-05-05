@@ -39,17 +39,15 @@ function createDeck() {
 function shuffleDeck() {
   const cards = document.querySelectorAll(".card");
 
+  // Step 1: animate all cards
   cards.forEach(card => {
-    // random values for scatter
-    card.style.setProperty("--randX", Math.random());
-    card.style.setProperty("--randY", Math.random());
-    card.style.setProperty("--randR", Math.random());
-
     card.classList.add("shuffle");
   });
 
+  // Step 2: WAIT so animation is visible
   setTimeout(() => {
-    // Fisher-Yates
+
+    // Shuffle data
     for (let i = remainingDeck.length - 1; i > 0; i--) {
       let j = Math.floor(Math.random() * (i + 1));
       [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
@@ -57,10 +55,13 @@ function shuffleDeck() {
 
     pickedCards = [];
     lastPickedCardId = null;
+
+    // Step 3: NOW switch to deck view
     mode = "deck";
 
     render();
-  }, 500);
+
+  }, 600); // ← important delay
 }
 
 /* PICK CARD */
