@@ -1,14 +1,18 @@
-/* BASE */
+/* =========================
+   BASE
+========================= */
 body {
   font-family: Arial, sans-serif;
   text-align: center;
   background: #1e1e1e;
   color: white;
   margin: 0;
-  padding-bottom: 140px; /* space for sticky controls */
+  padding-bottom: 140px;
 }
 
-/* ROWS (Hearts / Spades) */
+/* =========================
+   ROWS (HEARTS / SPADES)
+========================= */
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -20,11 +24,11 @@ body {
 /* =========================
    CARD STRUCTURE
 ========================= */
-
 .card {
   width: 90px;
   height: 135px;
   perspective: 1000px;
+  position: relative;
 }
 
 /* INNER */
@@ -65,7 +69,6 @@ body {
 /* =========================
    DECK (STACKED)
 ========================= */
-
 .deck {
   width: 100px;
   height: 140px;
@@ -73,7 +76,7 @@ body {
   position: relative;
 }
 
-/* Force stacking */
+/* STACK CARDS */
 .deck .card {
   position: absolute;
   top: 0;
@@ -81,7 +84,7 @@ body {
   margin: 0;
 }
 
-/* Stack offsets */
+/* STACK OFFSETS */
 .deck .card:nth-child(1) {
   transform: translate(0px, 0px);
   z-index: 3;
@@ -97,15 +100,52 @@ body {
   z-index: 1;
 }
 
-/* Deck tap feedback */
+/* TAP EFFECT */
 .deck:active {
   transform: scale(0.96);
 }
 
 /* =========================
-   CONTROLS (MOBILE FIRST)
+   SHUFFLE ANIMATION
 ========================= */
+.card.shuffle {
+  animation: shufflePop 0.5s ease;
+}
 
+@keyframes shufflePop {
+  0% { transform: scale(1) rotate(0); }
+  50% { transform: scale(1.2) rotate(10deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* =========================
+   DEAL ANIMATION
+========================= */
+.card.deal-in {
+  animation: dealIn 0.4s ease;
+}
+
+@keyframes dealIn {
+  0% {
+    transform: translateY(-40px) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* =========================
+   PREVENT RE-FLIP
+========================= */
+.card.no-anim .card-inner {
+  transition: none !important;
+}
+
+/* =========================
+   CONTROLS (MOBILE)
+========================= */
 .controls {
   position: fixed;
   bottom: 0;
@@ -143,9 +183,8 @@ select {
 }
 
 /* =========================
-   MOBILE STACKING
+   MOBILE STACK
 ========================= */
-
 @media (max-width: 600px) {
   .controls {
     display: flex;
@@ -153,67 +192,9 @@ select {
     align-items: center;
   }
 
-  button {
-    width: 90%;
-    max-width: 300px;
-  }
-
+  button,
   select {
     width: 90%;
     max-width: 300px;
-  }
-}
-
-.shuffle {
-  animation: shuffleAnim 0.5s ease;
-}
-
-@keyframes shuffleAnim {
-  0% { transform: translate(0,0) rotate(0); }
-  25% { transform: translate(-10px, -10px) rotate(-5deg); }
-  50% { transform: translate(10px, 10px) rotate(5deg); }
-  75% { transform: translate(-5px, 5px) rotate(-3deg); }
-  100% { transform: translate(0,0) rotate(0); }
-}
-
-.card.no-anim .card-inner {
-  transition: none !important;
-}
-
-/* Shuffle animation */
-.card.shuffle {
-  animation: shufflePop 0.6s ease;
-}
-
-@keyframes shufflePop {
-  0% {
-    transform: scale(1) rotate(0);
-  }
-  50% {
-    transform: scale(1.2) rotate(10deg);
-  }
-  100% {
-    transform: scale(1) rotate(0);
-  }
-}
-
-.card.dealing {
-  position: absolute;
-  z-index: 1000;
-  transition: transform 0.4s ease;
-}
-
-.card.deal-in {
-  animation: dealIn 0.4s ease;
-}
-
-@keyframes dealIn {
-  0% {
-    transform: translateY(-40px) scale(0.8);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0) scale(1);
-    opacity: 1;
   }
 }
