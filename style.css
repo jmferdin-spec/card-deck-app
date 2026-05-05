@@ -117,28 +117,31 @@ select {
   width: 100px;
   height: 140px;
   margin: 20px auto;
-  position: relative; /* IMPORTANT */
+  position: relative;
 }
 
-/* stacked effect */
+/* IMPORTANT: override normal .card layout */
 .deck .card {
-  position: absolute;
+  position: absolute !important;
   top: 0;
   left: 0;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  margin: 0;
 }
 
-/* slight offsets for stack look */
+/* Stack offsets */
 .deck .card:nth-child(1) {
   transform: translate(0px, 0px);
+  z-index: 3;
 }
 
 .deck .card:nth-child(2) {
-  transform: translate(2px, 2px);
+  transform: translate(3px, 3px);
+  z-index: 2;
 }
 
 .deck .card:nth-child(3) {
-  transform: translate(4px, 4px);
+  transform: translate(6px, 6px);
+  z-index: 1;
 }
 
 /* tap feedback */
