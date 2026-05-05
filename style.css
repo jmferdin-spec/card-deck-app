@@ -4,8 +4,8 @@
 body {
   font-family: Arial, sans-serif;
   text-align: center;
-  background: #1e1e1e;
-  color: white;
+  background: linear-gradient(180deg, #0d1b2a, #1b263b);
+  color: #e0e1dd;
   margin: 0;
   padding-bottom: 140px;
 }
@@ -29,6 +29,7 @@ body {
   height: 135px;
   perspective: 1000px;
   position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
 }
 
 /* INNER */
@@ -54,6 +55,7 @@ body {
   backface-visibility: hidden;
   border-radius: 10px;
   overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 /* FRONT */
@@ -74,6 +76,8 @@ body {
   height: 140px;
   margin: 20px auto;
   position: relative;
+  box-shadow: 0 0 15px rgba(58,134,255,0.4);
+  border-radius: 12px;
 }
 
 /* STACK CARDS */
@@ -151,7 +155,8 @@ body {
   bottom: 0;
   left: 0;
   width: 100%;
-  background: #111;
+  background: #0d1b2a;
+  border-top: 2px solid #415a77;
   padding: 12px;
   box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
 }
@@ -163,11 +168,11 @@ button {
   margin: 6px;
   border: none;
   border-radius: 10px;
-  background: #ff6a00;
+  background: linear-gradient(135deg, #3a86ff, #1b6fd1);
   color: white;
   font-weight: bold;
   min-width: 110px;
-  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
 button:active {
