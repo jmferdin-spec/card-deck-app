@@ -202,3 +202,18 @@ select {
   z-index: 1000;
   transition: transform 0.4s ease;
 }
+
+.card.deal-in {
+  animation: dealIn 0.4s ease;
+}
+
+@keyframes dealIn {
+  0% {
+    transform: translateY(-40px) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
