@@ -22,17 +22,17 @@
 
   </main>
 
-  <!-- ACTION BAR: deck + controls together at the bottom -->
+  <!-- ACTION BAR: controls on the left, deck on the right -->
   <div class="action-bar">
-    <div class="deck-wrap">
-      <div id="deck" class="deck" aria-label="Tap to draw a card"></div>
-      <p class="hint">Tap to draw</p>
-    </div>
-
     <div class="controls">
       <button class="btn btn-primary" onclick="shuffleDeck()">Shuffle</button>
       <button class="btn" onclick="resetDeck()">Reset</button>
       <button class="btn" onclick="openOptions()">Options</button>
+    </div>
+
+    <div class="deck-wrap">
+      <div id="deck" class="deck" aria-label="Tap to draw a card"></div>
+      <p class="hint">Tap to draw</p>
     </div>
   </div>
 
