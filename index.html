@@ -10,12 +10,6 @@
 
   <main class="page">
 
-    <section class="deck-section">
-      <h2 class="section-title">Deck</h2>
-      <div id="deck" class="deck" aria-label="Tap to draw a card"></div>
-      <p class="hint">Tap the deck to draw</p>
-    </section>
-
     <section class="suit-section">
       <h2 class="section-title" id="heartsLabel">Hearts</h2>
       <div id="hearts" class="row"></div>
@@ -28,11 +22,18 @@
 
   </main>
 
-  <!-- CONTROLS -->
-  <div class="controls">
-    <button class="btn btn-primary" onclick="shuffleDeck()">Shuffle</button>
-    <button class="btn" onclick="resetDeck()">Reset</button>
-    <button class="btn" onclick="openOptions()">Options</button>
+  <!-- ACTION BAR: deck + controls together at the bottom -->
+  <div class="action-bar">
+    <div class="deck-wrap">
+      <div id="deck" class="deck" aria-label="Tap to draw a card"></div>
+      <p class="hint">Tap to draw</p>
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-primary" onclick="shuffleDeck()">Shuffle</button>
+      <button class="btn" onclick="resetDeck()">Reset</button>
+      <button class="btn" onclick="openOptions()">Options</button>
+    </div>
   </div>
 
   <!-- OPTIONS MODAL -->
