@@ -35,7 +35,7 @@ body {
 }
 
 .page {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 16px 12px 8px;
 }
@@ -74,7 +74,7 @@ body {
 }
 
 /* =========================
-   ROWS — fan layout (cards overlap only when needed)
+   ROWS — cards grow to fill row width
 ========================= */
 .suit-section { margin-bottom: 8px; }
 
@@ -82,26 +82,25 @@ body {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 8px 4px;
+  padding: 8px 8px;
+  gap: 6px;
   min-height: 140px;
-  /* Container is full-width; cards inside use negative margin only when they don't fit */
 }
 
-/* Cards spread with positive gap when room allows, overlap when squeezed.
-   The trick: margin-left is the LARGER of (a small positive gap) or
-   (a negative value that makes 10 cards fit the viewport).
-   Since margin can't directly use min(), we set a default positive margin
-   and override with negative only at narrow breakpoints. */
+/* Cards in a row flex-grow to fill space, capped at a sensible max.
+   aspect-ratio keeps proportions correct as width changes. */
 .row .card {
-  margin-left: 8px;            /* normal spacing when there's room */
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 110px;
+  width: auto;
+  height: auto;
+  aspect-ratio: 2 / 3;
   position: relative;
   transition: transform 0.2s ease;
 }
-.row .card:first-child {
-  margin-left: 0;
-}
 
-/* Hover/tap a card to peek the full face */
+/* Hover/tap a card to lift it */
 .row .card:hover {
   transform: translateY(-12px);
   z-index: 20;
@@ -336,15 +335,17 @@ body {
 }
 
 /* =========================
-   RESPONSIVE — overlap ONLY when cards can't fit at normal spacing.
-   At wider viewports, cards spread with positive gap.
+   RESPONSIVE
+   Row cards size themselves via flex:1 + max-width.
+   Only the deck stack and gaps need breakpoint tuning.
 ========================= */
 
 /* Galaxy Fold front cover (~280px) */
 @media (max-width: 320px) {
-  .card { width: 56px; height: 84px; }
+  .card { width: 56px; height: 84px; }       /* deck-mode default size */
   .deck { width: 70px; height: 100px; }
-  .row .card { margin-left: -32px; }   /* heavy overlap to fit 10 cards */
+  .row { gap: 2px; padding: 8px 4px; }
+  .row .card { max-width: 70px; }
   .btn  { font-size: 13px; padding: 10px 8px; }
 }
 
@@ -352,28 +353,32 @@ body {
 @media (min-width: 321px) and (max-width: 480px) {
   .card { width: 64px; height: 96px; }
   .deck { width: 80px; height: 115px; }
-  .row .card { margin-left: -28px; }   /* moderate overlap */
+  .row { gap: 3px; padding: 8px 6px; }
+  .row .card { max-width: 80px; }
 }
 
 /* Large phones (~481–600px) */
 @media (min-width: 481px) and (max-width: 600px) {
   .card { width: 70px; height: 105px; }
   .deck { width: 85px; height: 120px; }
-  .row .card { margin-left: -18px; }   /* light overlap */
+  .row { gap: 4px; }
+  .row .card { max-width: 90px; }
   .controls { padding-left: 8px; padding-right: 8px; }
   .btn { font-size: 14px; }
 }
 
-/* Small tablet / Fold open (~601–800px) — cards comfortably fit, no overlap */
-@media (min-width: 601px) and (max-width: 800px) {
+/* Tablet / Fold open (~601–900px) */
+@media (min-width: 601px) and (max-width: 900px) {
   .card { width: 80px; height: 120px; }
   .deck { width: 95px; height: 135px; }
-  .row .card { margin-left: 4px; }     /* tight positive gap */
+  .row { gap: 6px; }
+  .row .card { max-width: 100px; }
 }
 
-/* Tablet+ (≥801px) — cards spread with comfortable spacing */
-@media (min-width: 801px) {
+/* Desktop (≥901px) — let cards grow comfortably */
+@media (min-width: 901px) {
   .card { width: 90px; height: 135px; }
   .deck { width: 110px; height: 156px; }
-  .row .card { margin-left: 8px; }     /* normal positive gap */
+  .row { gap: 8px; }
+  .row .card { max-width: 110px; }
 }
