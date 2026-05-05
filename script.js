@@ -138,16 +138,18 @@ function createCardElement(card, faceDown = false) {
       <div class="card-front">
         ${createCardFront(card)}
       </div>
-      <div class="card-back"></div>
+      <div class="card-back">
+        ★
+      </div>
     </div>
   `;
 
+  // THIS controls what side is visible
   if (!faceDown) {
-    div.classList.add("flipped");
+    div.classList.add("flipped"); // show FRONT
   }
 
-  return div;
-}
+  
 
 /*
 FLIP ANIMATION EXPLAINED:
