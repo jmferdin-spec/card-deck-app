@@ -1,20 +1,11 @@
 body {
   font-family: Arial, sans-serif;
   background: #111;
-  color: #fff;
+  color: white;
   text-align: center;
 }
 
-.controls {
-  margin-bottom: 20px;
-}
-
-button {
-  margin: 5px;
-  padding: 10px 15px;
-  cursor: pointer;
-}
-
+/* layout */
 .board {
   display: flex;
   flex-direction: column;
@@ -27,30 +18,27 @@ button {
   gap: 12px;
 }
 
-/* CARD STRUCTURE */
+/* CARD */
 .card {
   width: 90px;
   height: 130px;
-  perspective: 1000px; /* enables 3D effect */
-  cursor: pointer;
+  perspective: 1000px;
 }
 
-/* INNER WRAPPER (handles flip) */
 .card-inner {
   width: 100%;
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.5s ease;
-  will-change: transform; /* smoother animation */
+  transition: transform 0.5s;
 }
 
-/* FLIP STATE */
+/* flip state */
 .card.flipped .card-inner {
   transform: rotateY(180deg);
 }
 
-/* FRONT + BACK BASE */
+/* front + back */
 .card-front,
 .card-back {
   position: absolute;
@@ -58,42 +46,30 @@ button {
   height: 100%;
   border-radius: 12px;
   backface-visibility: hidden;
-  overflow: hidden;
 }
 
 /* FRONT */
 .card-front {
   background: white;
   display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* BACK (VISIBLE + STYLED) */
+/* BACK */
 .card-back {
-  transform: rotateY(180deg);
-
+  background: #2a5298;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  font-size: 20px;
   font-weight: bold;
-  color: rgba(255,255,255,0.85);
 
-  /* card pattern */
-  background:
-    radial-gradient(circle at center, rgba(255,255,255,0.08), transparent 60%),
-    repeating-linear-gradient(
-      45deg,
-      #1e3c72,
-      #1e3c72 10px,
-      #2a5298 10px,
-      #2a5298 20px
-    );
-
-  border: 2px solid rgba(255,255,255,0.15);
+  transform: rotateY(180deg);
 }
 
-/* Hover lift */
+/* hover */
 .card:hover {
-  transform: translateY(-6px);
+  transform: translateY(-5px);
 }
