@@ -3,8 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Force revalidation so updates show up without manual cache-busting -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <title>LDO Sports & Pools — Card Deck</title>
-  <link rel="stylesheet" href="style.css?v=9">
+
+  <!-- Auto cache-busting: appends ?v=<lastmod> to CSS so updates show up immediately. -->
+  <script>
+    (async function autoBust() {
+      try {
+        const r = await fetch('style.css', { method: 'HEAD', cache: 'no-store' });
+        const v = r.headers.get('last-modified') || Date.now();
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'style.css?v=' + encodeURIComponent(v);
+        document.head.appendChild(link);
+      } catch (e) {
+        // Fallback: load without busting
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'style.css';
+        document.head.appendChild(link);
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -67,6 +92,20 @@
     </div>
   </div>
 
-  <script src="script.js?v=9"></script>
+  <script>
+    (async function autoBustJS() {
+      try {
+        const r = await fetch('script.js', { method: 'HEAD', cache: 'no-store' });
+        const v = r.headers.get('last-modified') || Date.now();
+        const s = document.createElement('script');
+        s.src = 'script.js?v=' + encodeURIComponent(v);
+        document.body.appendChild(s);
+      } catch (e) {
+        const s = document.createElement('script');
+        s.src = 'script.js';
+        document.body.appendChild(s);
+      }
+    })();
+  </script>
 </body>
 </html>
