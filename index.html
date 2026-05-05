@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Card Deck App</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>Card Deck</h1>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div>
+      <label>Hearts Theme</label>
+      <select id="heartsTheme"></select>
+    </div>
+
+    <div>
+      <label>Spades Theme</label>
+      <select id="spadesTheme"></select>
+    </div>
+
+    <button id="shuffleBtn">Shuffle</button>
+    <button id="pickBtn">Pick Card</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <!-- Display -->
+  <div class="board">
+    <div class="row" id="heartsRow"></div>
+    <div class="row" id="spadesRow"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
