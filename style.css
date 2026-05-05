@@ -1,74 +1,80 @@
 body {
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   text-align: center;
   background: #1e1e1e;
   color: white;
+  margin: 0;
+  padding-bottom: 120px; /* space for sticky controls */
 }
 
+/* ROWS */
 .row {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
-  margin: 10px;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
 }
 
-/* CARD */
+/* CARDS slightly bigger for mobile */
 .card {
-  width: 80px;
-  height: 120px;
+  width: 90px;
+  height: 135px;
   perspective: 1000px;
-  margin: 5px;
 }
 
-.card-inner {
+/* CONTROLS - MOBILE FRIENDLY */
+.controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  transition: transform 0.5s;
+  background: #111;
+  padding: 12px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
 }
 
-.card.flipped .card-inner {
-  transform: rotateY(180deg);
-}
-
-.card-front,
-.card-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-}
-
-.card-back {
-  background: 
-    linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)),
-    url("./assets/back.png") center/cover no-repeat;
+/* BUTTONS */
+button {
+  font-size: 16px;
+  padding: 14px 18px;
+  margin: 6px;
+  border: none;
   border-radius: 10px;
+  background: #ff6a00;
+  color: white;
+  font-weight: bold;
+  min-width: 100px;
 }
 
-.card-front {
-  transform: rotateY(180deg);
+/* TOUCH FEEDBACK */
+button:active {
+  transform: scale(0.96);
 }
 
-.shuffle {
-  animation: shuffleAnim 0.6s ease;
+/* DROPDOWNS */
+select {
+  font-size: 16px;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 8px;
 }
 
-@keyframes shuffleAnim {
-  0% {
-    transform: translate(0, 0) rotate(0deg);
+/* STACK BUTTONS ON SMALL SCREENS */
+@media (max-width: 600px) {
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
-  25% {
-    transform: translate(-10px, -10px) rotate(-5deg);
+
+  button {
+    width: 90%;
+    max-width: 300px;
   }
-  50% {
-    transform: translate(10px, 10px) rotate(5deg);
-  }
-  75% {
-    transform: translate(-5px, 5px) rotate(-3deg);
-  }
-  100% {
-    transform: translate(0, 0) rotate(0deg);
+
+  select {
+    width: 90%;
+    max-width: 300px;
   }
 }
