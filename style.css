@@ -117,7 +117,7 @@ select {
   width: 100px;
   height: 140px;
   margin: 20px auto;
-  position: relative;
+  position: relative; /* IMPORTANT */
 }
 
 /* stacked effect */
@@ -125,12 +125,21 @@ select {
   position: absolute;
   top: 0;
   left: 0;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
 }
 
 /* slight offsets for stack look */
-.deck .card:nth-child(1) { transform: translate(0px, 0px); }
-.deck .card:nth-child(2) { transform: translate(2px, 2px); }
-.deck .card:nth-child(3) { transform: translate(4px, 4px); }
+.deck .card:nth-child(1) {
+  transform: translate(0px, 0px);
+}
+
+.deck .card:nth-child(2) {
+  transform: translate(2px, 2px);
+}
+
+.deck .card:nth-child(3) {
+  transform: translate(4px, 4px);
+}
 
 /* tap feedback */
 .deck:active {
