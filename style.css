@@ -182,24 +182,18 @@ select {
 
 /* Shuffle animation */
 .card.shuffle {
-  animation: shuffleScatter 0.5s ease;
+  animation: shufflePop 0.6s ease;
 }
 
-@keyframes shuffleScatter {
+@keyframes shufflePop {
   0% {
-    transform: translate(0,0) rotate(0);
-    opacity: 1;
+    transform: scale(1) rotate(0);
   }
   50% {
-    transform: translate(
-      calc(20px - 40px * var(--randX)),
-      calc(20px - 40px * var(--randY))
-    ) rotate(calc(20deg - 40deg * var(--randR)));
-    opacity: 0.7;
+    transform: scale(1.2) rotate(10deg);
   }
   100% {
-    transform: translate(0,0) rotate(0);
-    opacity: 1;
+    transform: scale(1) rotate(0);
   }
 }
 
