@@ -1,12 +1,11 @@
 // -----------------------------
-// DATA MODEL
+// DATA
 // -----------------------------
-
 const suits = ["hearts", "spades"];
 const values = ["A","2","3","4","5","6","7","8","9","10"];
 
-// Generate full deck
 const fullDeck = [];
+
 suits.forEach(suit => {
   values.forEach(value => {
     fullDeck.push({
@@ -22,7 +21,7 @@ let remainingDeck = [];
 let pickedCards = [];
 
 // -----------------------------
-// LOGO SYSTEM (MOCK REPO DATA)
+// LOGOS (mock repo list)
 // -----------------------------
 const availableLogos = [
   { id: "default", name: "Default", path: null },
@@ -36,23 +35,21 @@ let selectedThemes = {
 };
 
 // -----------------------------
-// INIT
+// DOM
 // -----------------------------
-
 const heartsRow = document.getElementById("heartsRow");
 const spadesRow = document.getElementById("spadesRow");
 
 const heartsThemeSelect = document.getElementById("heartsTheme");
 const spadesThemeSelect = document.getElementById("spadesTheme");
 
-// Populate dropdowns
+// -----------------------------
+// LOAD THEMES
+// -----------------------------
 function loadThemes() {
   availableLogos.forEach(logo => {
-    const opt1 = new Option(logo.name, logo.id);
-    const opt2 = new Option(logo.name, logo.id);
-
-    heartsThemeSelect.add(opt1);
-    spadesThemeSelect.add(opt2);
+    heartsThemeSelect.add(new Option(logo.name, logo.id));
+    spadesThemeSelect.add(new Option(logo.name, logo.id));
   });
 }
 
@@ -72,11 +69,8 @@ spadesThemeSelect.onchange = () => {
 function shuffleDeck(deck) {
   let arr = [...deck];
 
-  // Fisher-Yates shuffle
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-
-    // swap
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 
@@ -84,50 +78,37 @@ function shuffleDeck(deck) {
 }
 
 // -----------------------------
-// SVG CARD FRONT
+// CARD FRONT (SVG)
 // -----------------------------
 function createCardFront(card) {
   const color = card.suit === "hearts" ? "red" : "black";
 
   return `
   <svg viewBox="0 0 100 140" width="100%" height="100%">
-    
-    <!-- Card background -->
-    <rect x="0" y="0" width="100" height="140" rx="12" fill="white" />
+    <rect width="100" height="140" rx="10" fill="white"/>
 
-    <!-- Top-left value -->
     <text x="10" y="20"
       font-size="16"
       fill="${color}"
-      font-family="Arial, sans-serif"
+      font-family="Arial"
       font-weight="bold">
       ${card.value}
     </text>
 
-    <!-- Center suit -->
     <text x="50" y="80"
       text-anchor="middle"
       dominant-baseline="middle"
       font-size="48"
       fill="${color}"
-      font-family="Arial, sans-serif">
+      font-family="Arial">
       ${card.suit === "hearts" ? "♥" : "♠"}
     </text>
-
   </svg>
   `;
 }
 
-/*
-IMPORTANT:
-preserveAspectRatio="xMidYMid slice"
-- keeps image centered
-- maintains aspect ratio
-- crops evenly (no stretching)
-*/
-
 // -----------------------------
-// CARD COMPONENT (FRONT + BACK)
+// CREATE CARD (FRONT + BACK)
 // -----------------------------
 function createCardElement(card, faceDown = false) {
   const div = document.createElement("div");
@@ -139,35 +120,20 @@ function createCardElement(card, faceDown = false) {
         ${createCardFront(card)}
       </div>
       <div class="card-back">
-        ★
+        BACK
       </div>
     </div>
   `;
 
-  // THIS controls what side is visible
   if (!faceDown) {
-    div.classList.add("flipped"); // show FRONT
+    div.classList.add("flipped");
   }
 
-  
-
-/*
-FLIP ANIMATION EXPLAINED:
-
-.card has perspective → enables 3D
-
-.card-inner:
-- transform-style: preserve-3d keeps children in 3D space
-
-.card-front / .card-back:
-- backface-visibility: hidden hides reversed side
-
-.flipped:
-- rotateY(180deg) flips card
-*/
+  return div;
+}
 
 // -----------------------------
-// RENDER INITIAL (FACE UP)
+// INITIAL RENDER (ALL FACE UP)
 // -----------------------------
 function renderInitial() {
   heartsRow.innerHTML = "";
@@ -196,17 +162,15 @@ function pickCard() {
   const el = createCardElement(card, true);
 
   const row = card.suit === "hearts" ? heartsRow : spadesRow;
-
   row.appendChild(el);
 
-  // flip after slight delay
   setTimeout(() => {
     el.classList.add("flipped");
   }, 100);
 }
 
 // -----------------------------
-// SHUFFLE BUTTON
+// BUTTONS
 // -----------------------------
 document.getElementById("shuffleBtn").onclick = () => {
   shuffledDeck = shuffleDeck(fullDeck);
@@ -217,14 +181,8 @@ document.getElementById("shuffleBtn").onclick = () => {
   spadesRow.innerHTML = "";
 };
 
-// -----------------------------
-// PICK BUTTON
-// -----------------------------
 document.getElementById("pickBtn").onclick = pickCard;
 
-// -----------------------------
-// RESET BUTTON
-// -----------------------------
 document.getElementById("resetBtn").onclick = () => {
   remainingDeck = [];
   pickedCards = [];
