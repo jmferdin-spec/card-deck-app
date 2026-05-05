@@ -69,11 +69,46 @@ function pickCard() {
 
   const card = remainingDeck.shift();
   pickedCards.push(card);
-
-  // Track newest card so only it animates
   lastPickedCardId = card.id;
 
+  const deck = document.getElementById("deck");
+
+  // Create temp card at deck position
+  const tempCard = createCardElement(card, false);
+  tempCard.classList.add("dealing");
+
+  const deckRect = deck.getBoundingClientRect();
+
+  tempCard.style.left = deckRect.left + "px";
+  tempCard.style.top = deckRect.top + "px";
+
+  document.body.appendChild(tempCard);
+
+  // Render target position
   render();
+
+  const targetCards = document.querySelectorAll(".card");
+  const target = targetCards[targetCards.length - 1];
+  const targetRect = target.getBoundingClientRect();
+
+  // Animate movement
+  requestAnimationFrame(() => {
+    tempCard.style.transform = `translate(
+      ${targetRect.left - deckRect.left}px,
+      ${targetRect.top - deckRect.top}px
+    )`;
+  });
+
+  // Flip mid-way
+  setTimeout(() => {
+    tempCard.classList.add("flipped");
+  }, 200);
+
+  // Cleanup
+  setTimeout(() => {
+    tempCard.remove();
+    render();
+  }, 450);
 }
 
 /* RESET */
