@@ -63,19 +63,19 @@ function shuffleDeck() {
 function pickCard() {
   if (remainingDeck.length === 0) return;
 
-  let card = remainingDeck.shift();
+  const card = remainingDeck.shift();
   pickedCards.push(card);
 
   render();
 
-  // flip animation after render
+  // Animate last dealt card
+  const allCards = document.querySelectorAll(".card");
+  const lastCard = allCards[allCards.length - 1];
+
+  lastCard.style.transform = "translateY(-20px)";
   setTimeout(() => {
-    document.querySelectorAll(".card").forEach(c => {
-      if (!c.classList.contains("flipped")) {
-        c.classList.add("flipped");
-      }
-    });
-  }, 50);
+    lastCard.style.transform = "";
+  }, 200);
 }
 
 /* RESET */
@@ -144,6 +144,26 @@ function render() {
   });
 }
 
+function createCardElement(card, flipped) {
+  const cardEl = document.createElement("div");
+  cardEl.className = "card";
+
+  cardEl.innerHTML = `
+    <div class="card-inner">
+      <div class="card-front">
+        ${createCardSVG(card)}
+      </div>
+      <div class="card-back"></div>
+    </div>
+  `;
+
+  if (flipped) {
+    setTimeout(() => cardEl.classList.add("flipped"), 50);
+  }
+
+  return cardEl;
+}
+
 /* DROPDOWNS */
 function initThemes() {
   const heartsSelect = document.getElementById("heartsTheme");
@@ -172,3 +192,5 @@ function initThemes() {
 createDeck();
 initThemes();
 render();
+
+document.getElementById("deck").addEventListener("click", pickCard);
