@@ -1,29 +1,103 @@
-/* BASE */
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background: #1e1e1e;
-  color: white;
-  margin: 0;
-  padding-bottom: 140px;
+/* =========================
+   LDO SPORTS & POOLS THEME
+   Navy + royal blue + silver
+========================= */
+:root {
+  --navy-deep:   #0a1530;
+  --navy:        #102650;
+  --navy-light:  #1a3470;
+  --blue-accent: #2a6dd9;
+  --blue-bright: #4a90ff;
+  --silver:      #c8d0dc;
+  --silver-soft: #8b95a8;
+  --white:       #ffffff;
+  --shadow:      0 6px 20px rgba(0,0,0,0.45);
+  --shadow-soft: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-/* ROWS */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  text-align: center;
+  color: var(--white);
+  /* Subtle navy gradient that matches the card-back's depth */
+  background:
+    radial-gradient(ellipse at top, var(--navy-light) 0%, var(--navy-deep) 60%, #050a1c 100%);
+  background-attachment: fixed;
+  padding-bottom: 110px; /* room for fixed controls */
+}
+
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px 12px 8px;
+}
+
+/* =========================
+   SECTION HEADERS
+========================= */
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--silver);
+  margin: 18px 0 10px;
+  position: relative;
+  display: inline-block;
+  padding: 0 16px;
+}
+.section-title::before,
+.section-title::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 30px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--blue-accent), transparent);
+}
+.section-title::before { right: 100%; }
+.section-title::after  { left: 100%; }
+
+.hint {
+  font-size: 12px;
+  color: var(--silver-soft);
+  margin: 4px 0 14px;
+  letter-spacing: 0.5px;
+}
+
+/* =========================
+   ROWS / GRID
+========================= */
+.suit-section { margin-bottom: 8px; }
+
 .row {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  padding: 10px;
+  padding: 8px 4px;
+  min-height: 140px;
 }
 
 /* =========================
-   CARD STRUCTURE (IMPORTANT)
+   CARD STRUCTURE
+   FIX: front is now the natural face,
+        back is rotated. Stack shows backs at rest.
 ========================= */
 .card {
   width: 90px;
   height: 135px;
   perspective: 1000px;
+  cursor: pointer;
+  /* Animate the wrapper for deal-in without fighting the flip */
 }
 
 .card-inner {
@@ -31,9 +105,10 @@ body {
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.6s;
+  transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
+/* Flipped = show face */
 .card.flipped .card-inner {
   transform: rotateY(180deg);
 }
@@ -41,91 +116,140 @@ body {
 .card-front,
 .card-back {
   position: absolute;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   backface-visibility: hidden;
-  border-radius: 10px;
+  -webkit-backface-visibility: hidden;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
 }
 
-/* FRONT */
+/* BACK = visible by default (no rotation) */
+.card-back {
+  background: url("./assets/back.png") center / cover no-repeat;
+  background-color: var(--navy-deep); /* fallback */
+  border: 1px solid rgba(200, 208, 220, 0.15);
+}
+
+/* FRONT = rotated, hidden until .flipped */
 .card-front {
   transform: rotateY(180deg);
-  background: white;
+  background: var(--white);
+  border: 1px solid var(--silver-soft);
 }
 
-/* BACK */
-.card-back {
-  background: url("./assets/back.png") center/cover no-repeat;
+.card-front svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* =========================
-   DECK (STACK)
+   DECK STACK
 ========================= */
 .deck {
   width: 100px;
-  height: 140px;
-  margin: 20px auto;
+  height: 142px;
+  margin: 8px auto 4px;
   position: relative;
+  cursor: pointer;
+  /* Subtle glow so it reads as interactive */
+  filter: drop-shadow(0 8px 16px rgba(74, 144, 255, 0.15));
 }
 
-.deck .card {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
+.deck .card { position: absolute; top: 0; left: 0; }
 
-.deck .card:nth-child(1) { z-index: 3; }
-.deck .card:nth-child(2) { transform: translate(3px,3px); z-index: 2; }
-.deck .card:nth-child(3) { transform: translate(6px,6px); z-index: 1; }
+/* The visual stack — third card behind, second middle, top in front */
+.deck .card:nth-child(1) { transform: translate(6px, 6px); z-index: 1; }
+.deck .card:nth-child(2) { transform: translate(3px, 3px); z-index: 2; }
+.deck .card:nth-child(3) { transform: translate(0, 0);     z-index: 3; }
+
+.deck:hover .card:nth-child(3) {
+  transform: translate(0, -3px);
+  transition: transform 0.2s ease;
+}
 
 /* =========================
    ANIMATIONS
+   Deal-in animates the .card wrapper.
+   Flip animates .card-inner.
+   They no longer collide.
 ========================= */
-.card.shuffle {
+.card.shuffle .card-inner {
   animation: shuffle 0.4s ease;
 }
-
 @keyframes shuffle {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1) rotate(5deg); }
-  100% { transform: scale(1); }
+  0%   { transform: translateY(0) rotate(0deg); }
+  25%  { transform: translateY(-6px) rotate(-3deg); }
+  50%  { transform: translateY(0) rotate(3deg); }
+  75%  { transform: translateY(-3px) rotate(-1deg); }
+  100% { transform: translateY(0) rotate(0deg); }
 }
 
 .card.deal-in {
-  animation: deal 0.4s ease;
+  animation: deal 0.35s ease both;
 }
-
 @keyframes deal {
   0% {
-    transform: translateY(-40px);
     opacity: 0;
+    transform: translateY(-30px) scale(0.92);
   }
   100% {
-    transform: translateY(0);
     opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-/* PREVENT RE-FLIP */
-.card.no-anim .card-inner {
-  transition: none !important;
-}
+/* Cards already in suit rows on re-render: no animation */
+.card.no-anim .card-inner { transition: none !important; }
+.card.no-anim             { animation: none !important; }
 
 /* =========================
-   CONTROLS
+   CONTROLS BAR
 ========================= */
 .controls {
   position: fixed;
   bottom: 0;
+  left: 0;
   width: 100%;
-  background: #111;
-  padding: 10px;
+  background: linear-gradient(180deg, rgba(10, 21, 48, 0.85), var(--navy-deep));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(74, 144, 255, 0.2);
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  z-index: 50;
 }
 
-button {
-  padding: 12px;
-  margin: 5px;
-  font-size: 16px;
+.btn {
+  flex: 1 1 auto;
+  max-width: 200px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--white);
+  background: linear-gradient(180deg, var(--navy-light), var(--navy));
+  border: 1px solid rgba(200, 208, 220, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: var(--shadow-soft);
+}
+.btn:hover {
+  background: linear-gradient(180deg, #1f3a85, var(--navy-light));
+  box-shadow: 0 4px 12px rgba(74, 144, 255, 0.25);
+}
+.btn:active { transform: translateY(1px); }
+
+.btn-primary {
+  background: linear-gradient(180deg, var(--blue-bright), var(--blue-accent));
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.btn-primary:hover {
+  background: linear-gradient(180deg, #6aa6ff, #3a7de9);
 }
 
 /* =========================
@@ -133,36 +257,81 @@ button {
 ========================= */
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
+  inset: 0;
+  background: rgba(5, 10, 28, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 100;
+  padding: 16px;
 }
-
-.hidden {
-  display: none;
-}
+.hidden { display: none; }
 
 .modal-content {
-  background: #222;
-  padding: 20px;
-  border-radius: 10px;
+  background: linear-gradient(180deg, var(--navy), var(--navy-deep));
+  border: 1px solid rgba(74, 144, 255, 0.3);
+  padding: 24px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: var(--shadow);
+}
+.modal-content h3 {
+  margin: 0 0 18px;
+  color: var(--silver);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 16px;
+}
+
+.field {
+  text-align: left;
+  margin-bottom: 14px;
+}
+.field label {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--silver-soft);
+  margin-bottom: 6px;
+}
+.field select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  color: var(--white);
+  background: var(--navy-deep);
+  border: 1px solid rgba(200, 208, 220, 0.25);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
 }
 
 /* =========================
-   MOBILE
+   RESPONSIVE — Galaxy Fold front (~280px) + folded/unfolded
 ========================= */
-@media (max-width: 600px) {
-  .controls {
-    display: flex;
-    flex-direction: column;
-  }
+@media (max-width: 320px) {
+  .card { width: 72px; height: 108px; }
+  .deck { width: 80px; height: 115px; }
+  .row  { gap: 6px; }
+  .btn  { font-size: 13px; padding: 10px 8px; }
+}
 
-  button {
-    width: 90%;
-  }
+@media (max-width: 600px) {
+  .controls { padding-left: 8px; padding-right: 8px; }
+  .btn { font-size: 14px; }
+}
+
+/* Tablet / Fold open */
+@media (min-width: 700px) {
+  .card { width: 100px; height: 150px; }
+  .deck { width: 110px; height: 156px; }
 }

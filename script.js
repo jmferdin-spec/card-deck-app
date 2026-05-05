@@ -1,14 +1,18 @@
+/* =========================
+   LDO CARD APP
+========================= */
+
 const values = ["A","2","3","4","5","6","7","8","9","10"];
-const suits = ["hearts", "spades"];
+const suits  = ["hearts", "spades"];
 
 let fullDeck = [];
 let remainingDeck = [];
 let pickedCards = [];
 
-let mode = "grid";
+let mode = "grid";          // "grid" = show all cards face-up, "deck" = stack to draw from
 let lastPickedCardId = null;
 
-/* LOGOS */
+/* LOGOS — drop more entries here to expand the theme picker */
 const logos = [
   { id: "default", name: "Default", path: null },
   { id: "cowboys", name: "Cowboys", path: "./assets/logos/cowboys.png" }
@@ -19,55 +23,56 @@ let selectedThemes = {
   spades: "default"
 };
 
-/* CREATE DECK */
+/* =========================
+   DECK BUILDING
+========================= */
 function createDeck() {
   fullDeck = [];
   suits.forEach(suit => {
     values.forEach(value => {
-      fullDeck.push({
-        suit,
-        value,
-        id: suit + value
-      });
+      fullDeck.push({ suit, value, id: suit + value });
     });
   });
   remainingDeck = [...fullDeck];
 }
 
-/* SHUFFLE */
 function shuffleDeck() {
-  const cards = document.querySelectorAll(".card");
+  // Block shuffle mid-draw — user must Reset first to avoid losing picked cards
+  if (pickedCards.length > 0) {
+    alert("Reset the deck before shuffling — you have cards already drawn.");
+    return;
+  }
 
-  cards.forEach(card => {
-    card.classList.add("shuffle");
-  });
+  // Only animate the deck stack, not the suit rows (cleaner visually)
+  const deckCards = document.querySelectorAll("#deck .card");
+  if (deckCards.length === 0) {
+    // First shuffle from grid mode — animate the grid cards briefly
+    document.querySelectorAll(".card").forEach(c => c.classList.add("shuffle"));
+  } else {
+    deckCards.forEach(c => c.classList.add("shuffle"));
+  }
 
   setTimeout(() => {
     for (let i = remainingDeck.length - 1; i > 0; i--) {
-      let j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(Math.random() * (i + 1));
       [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
     }
-
-    pickedCards = [];
     lastPickedCardId = null;
     mode = "deck";
-
     render();
-  }, 500);
+  }, 450);
 }
 
-/* PICK CARD */
 function pickCard() {
+  if (mode !== "deck") return;            // can't pick from the grid view
   if (remainingDeck.length === 0) return;
 
   const card = remainingDeck.shift();
   pickedCards.push(card);
   lastPickedCardId = card.id;
-
   render();
 }
 
-/* RESET */
 function resetDeck() {
   createDeck();
   pickedCards = [];
@@ -76,98 +81,120 @@ function resetDeck() {
   render();
 }
 
-/* GET LOGO */
+/* =========================
+   THEMES / LOGOS
+========================= */
 function getLogo(suit) {
   const themeId = selectedThemes[suit];
   const logo = logos.find(l => l.id === themeId);
   return logo?.path;
 }
 
-/* CARD SVG */
 function createCardSVG(card) {
-  const color = card.suit === "hearts" ? "red" : "black";
+  const color = card.suit === "hearts" ? "#c8102e" : "#0a0a0a";
+  const symbol = card.suit === "hearts" ? "♥" : "♠";
   const logo = getLogo(card.suit);
 
   return `
-  <svg viewBox="0 0 100 150">
-    <rect width="100" height="150" rx="10" fill="white" stroke="black"/>
+  <svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+    <rect x="1" y="1" width="98" height="148" rx="8" ry="8"
+          fill="white" stroke="#c8d0dc" stroke-width="1"/>
 
-    <text x="8" y="18" fill="${color}" font-size="12">${card.value}</text>
-    <text x="8" y="32" fill="${color}">${card.suit === "hearts" ? "♥" : "♠"}</text>
+    <!-- top-left corner -->
+    <text x="8" y="20" fill="${color}" font-size="14" font-weight="700"
+          font-family="Arial, sans-serif">${card.value}</text>
+    <text x="8" y="34" fill="${color}" font-size="14"
+          font-family="Arial, sans-serif">${symbol}</text>
 
-    <text x="92" y="142" fill="${color}" font-size="12" text-anchor="end">${card.value}</text>
+    <!-- bottom-right corner (rotated) -->
+    <g transform="rotate(180 92 138)">
+      <text x="92" y="138" fill="${color}" font-size="14" font-weight="700"
+            font-family="Arial, sans-serif">${card.value}</text>
+      <text x="92" y="124" fill="${color}" font-size="14"
+            font-family="Arial, sans-serif">${symbol}</text>
+    </g>
 
-    ${
-      logo
-      ? `<image href="${logo}" x="20" y="40" width="60" height="70" preserveAspectRatio="xMidYMid slice"/>`
-      : `<text x="50" y="80" text-anchor="middle" font-size="40" fill="${color}">
-          ${card.suit === "hearts" ? "♥" : "♠"}
-        </text>`
+    <!-- center pip / logo -->
+    ${ logo
+      ? `<image href="${logo}" x="20" y="45" width="60" height="60"
+                preserveAspectRatio="xMidYMid meet"/>`
+      : `<text x="50" y="92" text-anchor="middle" font-size="48"
+                fill="${color}" font-family="Arial, sans-serif">${symbol}</text>`
     }
   </svg>`;
 }
 
-/* RENDER */
+/* =========================
+   RENDER
+========================= */
 function render() {
-  const deckDiv = document.getElementById("deck");
+  const deckDiv   = document.getElementById("deck");
   const heartsDiv = document.getElementById("hearts");
   const spadesDiv = document.getElementById("spades");
 
-  deckDiv.innerHTML = "";
+  deckDiv.innerHTML   = "";
   heartsDiv.innerHTML = "";
   spadesDiv.innerHTML = "";
 
   if (mode === "grid") {
     fullDeck.forEach(card => {
-      const cardEl = createCardElement(card, true);
+      const cardEl = createCardElement(card, true, false);
       (card.suit === "hearts" ? heartsDiv : spadesDiv).appendChild(cardEl);
     });
+    return;
   }
 
-  if (mode === "deck") {
-    remainingDeck.slice(0, 3).forEach(card => {
-      const cardEl = createCardElement(card, false);
-      deckDiv.appendChild(cardEl);
-    });
+  // mode === "deck"
+  // Render the bottom of the stack first so the top card is :nth-child(3) — the one users tap.
+  const stackPreview = remainingDeck.slice(0, 3).reverse();
+  stackPreview.forEach(card => {
+    const cardEl = createCardElement(card, false, false);
+    deckDiv.appendChild(cardEl);
+  });
 
-    pickedCards.forEach(card => {
-      const cardEl = createCardElement(card, true);
-      (card.suit === "hearts" ? heartsDiv : spadesDiv).appendChild(cardEl);
-    });
-  }
+  pickedCards.forEach(card => {
+    const isJustPicked = card.id === lastPickedCardId;
+    const cardEl = createCardElement(card, true, isJustPicked);
+    (card.suit === "hearts" ? heartsDiv : spadesDiv).appendChild(cardEl);
+  });
 }
 
-/* CARD ELEMENT */
-function createCardElement(card, flipped) {
+/* =========================
+   CARD ELEMENT
+   `flipped`     -> show face
+   `animateIn`   -> play deal-in + flip; otherwise instant (no-anim)
+========================= */
+function createCardElement(card, flipped, animateIn) {
   const cardEl = document.createElement("div");
   cardEl.className = "card";
+  cardEl.dataset.id = card.id;
 
   cardEl.innerHTML = `
     <div class="card-inner">
-      <div class="card-front">
-        ${createCardSVG(card)}
-      </div>
       <div class="card-back"></div>
+      <div class="card-front">${createCardSVG(card)}</div>
     </div>
   `;
 
   if (flipped) {
-    if (card.id === lastPickedCardId) {
+    if (animateIn) {
+      // Deal in face-down, then flip after the deal completes
       cardEl.classList.add("deal-in");
-
-      setTimeout(() => {
-        cardEl.classList.add("flipped");
-      }, 120);
+      requestAnimationFrame(() => {
+        setTimeout(() => cardEl.classList.add("flipped"), 180);
+      });
     } else {
-      cardEl.classList.add("no-anim");
-      cardEl.classList.add("flipped");
+      // Already-revealed cards: snap to flipped state, no animation
+      cardEl.classList.add("no-anim", "flipped");
     }
   }
 
   return cardEl;
 }
 
-/* DROPDOWNS */
+/* =========================
+   OPTIONS MODAL
+========================= */
 function initThemes() {
   const heartsSelect = document.getElementById("heartsTheme");
   const spadesSelect = document.getElementById("spadesTheme");
@@ -176,10 +203,15 @@ function initThemes() {
     heartsSelect.add(new Option(l.name, l.id));
     spadesSelect.add(new Option(l.name, l.id));
   });
+
+  heartsSelect.value = selectedThemes.hearts;
+  spadesSelect.value = selectedThemes.spades;
 }
 
-/* OPTIONS MODAL FUNCTIONS */
 function openOptions() {
+  // Sync dropdowns to current state every time
+  document.getElementById("heartsTheme").value = selectedThemes.hearts;
+  document.getElementById("spadesTheme").value = selectedThemes.spades;
   document.getElementById("optionsModal").classList.remove("hidden");
 }
 
@@ -187,27 +219,39 @@ function closeOptions() {
   document.getElementById("optionsModal").classList.add("hidden");
 }
 
+function modalBackdropClick(e) {
+  if (e.target.id === "optionsModal") closeOptions();
+}
+
 function applyThemes() {
   selectedThemes.hearts = document.getElementById("heartsTheme").value;
   selectedThemes.spades = document.getElementById("spadesTheme").value;
-
   updateLabels();
   render();
   closeOptions();
 }
 
 function updateLabels() {
-  document.getElementById("heartsLabel").textContent =
-    logos.find(l => l.id === selectedThemes.hearts)?.name || "Hearts";
+  const heartsName = logos.find(l => l.id === selectedThemes.hearts)?.name;
+  const spadesName = logos.find(l => l.id === selectedThemes.spades)?.name;
 
+  document.getElementById("heartsLabel").textContent =
+    (heartsName && heartsName !== "Default") ? `Hearts — ${heartsName}` : "Hearts";
   document.getElementById("spadesLabel").textContent =
-    logos.find(l => l.id === selectedThemes.spades)?.name || "Spades";
+    (spadesName && spadesName !== "Default") ? `Spades — ${spadesName}` : "Spades";
 }
 
-/* INIT */
+/* =========================
+   INIT
+========================= */
 createDeck();
 initThemes();
 updateLabels();
 render();
 
 document.getElementById("deck").addEventListener("click", pickCard);
+
+// Esc closes the modal
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeOptions();
+});

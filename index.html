@@ -2,48 +2,61 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Card App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LDO Sports & Pools — Card Deck</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>Deck</h2>
-<div id="deck" class="deck"></div>
+  <main class="page">
 
-<h2 id="heartsLabel">Hearts</h2>
-<div id="hearts" class="row"></div>
+    <section class="deck-section">
+      <h2 class="section-title">Deck</h2>
+      <div id="deck" class="deck" aria-label="Tap to draw a card"></div>
+      <p class="hint">Tap the deck to draw</p>
+    </section>
 
-<h2 id="spadesLabel">Spades</h2>
-<div id="spades" class="row"></div>
+    <section class="suit-section">
+      <h2 class="section-title" id="heartsLabel">Hearts</h2>
+      <div id="hearts" class="row"></div>
+    </section>
 
-<!-- CONTROLS -->
-<div class="controls">
-  <button onclick="shuffleDeck()">Shuffle</button>
-  <button onclick="resetDeck()">Reset</button>
-  <button onclick="openOptions()">Options</button>
-</div>
+    <section class="suit-section">
+      <h2 class="section-title" id="spadesLabel">Spades</h2>
+      <div id="spades" class="row"></div>
+    </section>
 
-<!-- OPTIONS MODAL -->
-<div id="optionsModal" class="modal hidden">
-  <div class="modal-content">
+  </main>
 
-    <h3>Options</h3>
-
-    <div style="margin-bottom:10px;">
-      <label>Hearts Theme</label><br>
-      <select id="heartsTheme"></select>
-    </div>
-
-    <div style="margin-bottom:15px;">
-      <label>Spades Theme</label><br>
-      <select id="spadesTheme"></select>
-    </div>
-
-    <button onclick="applyThemes()">Apply</button>
-
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button class="btn btn-primary" onclick="shuffleDeck()">Shuffle</button>
+    <button class="btn" onclick="resetDeck()">Reset</button>
+    <button class="btn" onclick="openOptions()">Options</button>
   </div>
-</div>
 
-<script src="script.js"></script>
+  <!-- OPTIONS MODAL -->
+  <div id="optionsModal" class="modal hidden" onclick="modalBackdropClick(event)">
+    <div class="modal-content">
+      <h3>Options</h3>
+
+      <div class="field">
+        <label for="heartsTheme">Hearts Theme</label>
+        <select id="heartsTheme"></select>
+      </div>
+
+      <div class="field">
+        <label for="spadesTheme">Spades Theme</label>
+        <select id="spadesTheme"></select>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn" onclick="closeOptions()">Cancel</button>
+        <button class="btn btn-primary" onclick="applyThemes()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
