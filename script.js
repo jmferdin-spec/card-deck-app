@@ -118,30 +118,23 @@ function createCardSVG(card) {
 
 /* RENDER */
 function render() {
+  const deckDiv = document.getElementById("deck");
   const heartsDiv = document.getElementById("hearts");
   const spadesDiv = document.getElementById("spades");
 
+  deckDiv.innerHTML = "";
   heartsDiv.innerHTML = "";
   spadesDiv.innerHTML = "";
 
-  const display = pickedCards.length ? pickedCards : fullDeck;
+  // SHOW DECK (top 3 cards stacked)
+  remainingDeck.slice(0, 3).forEach(card => {
+    const cardEl = createCardElement(card, false);
+    deckDiv.appendChild(cardEl);
+  });
 
-  display.forEach(card => {
-    const cardEl = document.createElement("div");
-    cardEl.className = "card";
-
-    cardEl.innerHTML = `
-      <div class="card-inner">
-        <div class="card-front">
-          ${createCardSVG(card)}
-        </div>
-        <div class="card-back"></div>
-      </div>
-    `;
-
-    if (pickedCards.includes(card)) {
-  setTimeout(() => cardEl.classList.add("flipped"), 10);
-}
+  // SHOW PICKED CARDS
+  pickedCards.forEach(card => {
+    const cardEl = createCardElement(card, true);
 
     if (card.suit === "hearts") {
       heartsDiv.appendChild(cardEl);
