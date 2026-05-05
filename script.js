@@ -4,7 +4,7 @@ const suits = ["hearts", "spades"];
 let fullDeck = [];
 let remainingDeck = [];
 let pickedCards = [];
-
+let lastPickedCardId = null;
 let mode = "grid"; 
 // "grid" = show all cards
 // "deck" = show stacked deck
@@ -39,25 +39,21 @@ function createDeck() {
 function shuffleDeck() {
   const cards = document.querySelectorAll(".card");
 
-  // Add animation class
   cards.forEach(card => {
     card.classList.add("shuffle");
   });
 
   setTimeout(() => {
-    // Fisher-Yates shuffle
     for (let i = remainingDeck.length - 1; i > 0; i--) {
       let j = Math.floor(Math.random() * (i + 1));
       [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
     }
 
     pickedCards = [];
-
-    // SWITCH TO DECK MODE
+    lastPickedCardId = null; // ✅ ADD THIS
     mode = "deck";
 
     render();
-
   }, 400);
 }
 
@@ -68,23 +64,18 @@ function pickCard() {
   const card = remainingDeck.shift();
   pickedCards.push(card);
 
+  // Track newest card so only it animates
+  lastPickedCardId = card.id;
+
   render();
-
-  // Animate last dealt card
-  const allCards = document.querySelectorAll(".card");
-  const lastCard = allCards[allCards.length - 1];
-
-  lastCard.style.transform = "translateY(-20px)";
-  setTimeout(() => {
-    lastCard.style.transform = "";
-  }, 200);
 }
 
 /* RESET */
 function resetDeck() {
   createDeck();
   pickedCards = [];
-  mode = "grid";  // show all cards again
+  lastPickedCardId = null; // ✅ ADD THIS
+  mode = "grid";
   render();
 }
 
@@ -179,7 +170,13 @@ function createCardElement(card, flipped) {
   `;
 
   if (flipped) {
-    setTimeout(() => cardEl.classList.add("flipped"), 50);
+    if (card.id === lastPickedCardId) {
+      // Animate ONLY newest card
+      setTimeout(() => cardEl.classList.add("flipped"), 50);
+    } else {
+      // Instantly show already-picked cards
+      cardEl.classList.add("flipped");
+    }
   }
 
   return cardEl;
