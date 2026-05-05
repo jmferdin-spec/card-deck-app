@@ -1,13 +1,14 @@
+/* BASE */
 body {
   font-family: Arial, sans-serif;
   text-align: center;
   background: #1e1e1e;
   color: white;
   margin: 0;
-  padding-bottom: 120px; /* space for sticky controls */
+  padding-bottom: 140px; /* space for sticky controls */
 }
 
-/* ROWS */
+/* ROWS (Hearts / Spades) */
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -16,14 +17,17 @@ body {
   padding: 10px;
 }
 
-/* CARDS slightly bigger for mobile */
+/* =========================
+   CARD STRUCTURE
+========================= */
+
 .card {
   width: 90px;
   height: 135px;
   perspective: 1000px;
 }
 
-/* INNER WRAPPER */
+/* INNER */
 .card-inner {
   width: 100%;
   height: 100%;
@@ -45,84 +49,33 @@ body {
   height: 100%;
   backface-visibility: hidden;
   border-radius: 10px;
+  overflow: hidden;
 }
 
-/* FRONT (hidden initially) */
+/* FRONT */
 .card-front {
   transform: rotateY(180deg);
 }
 
-/* BACK (visible initially) */
+/* BACK */
 .card-back {
   background: url("./assets/back.png") center/cover no-repeat;
 }
 
-/* CONTROLS - MOBILE FRIENDLY */
-.controls {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: #111;
-  padding: 12px;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
-}
+/* =========================
+   DECK (STACKED)
+========================= */
 
-/* BUTTONS */
-button {
-  font-size: 16px;
-  padding: 14px 18px;
-  margin: 6px;
-  border: none;
-  border-radius: 10px;
-  background: #ff6a00;
-  color: white;
-  font-weight: bold;
-  min-width: 100px;
-}
-
-/* TOUCH FEEDBACK */
-button:active {
-  transform: scale(0.96);
-}
-
-/* DROPDOWNS */
-select {
-  font-size: 16px;
-  padding: 10px;
-  margin: 5px;
-  border-radius: 8px;
-}
-
-/* STACK BUTTONS ON SMALL SCREENS */
-@media (max-width: 600px) {
-  .controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  button {
-    width: 90%;
-    max-width: 300px;
-  }
-
-  select {
-    width: 90%;
-    max-width: 300px;
-  }
-
-
-  .deck {
+.deck {
   width: 100px;
   height: 140px;
   margin: 20px auto;
   position: relative;
 }
 
-/* IMPORTANT: override normal .card layout */
+/* Force stacking */
 .deck .card {
-  position: absolute !important;
+  position: absolute;
   top: 0;
   left: 0;
   margin: 0;
@@ -144,8 +97,69 @@ select {
   z-index: 1;
 }
 
-/* tap feedback */
+/* Deck tap feedback */
 .deck:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
+
+/* =========================
+   CONTROLS (MOBILE FIRST)
+========================= */
+
+.controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #111;
+  padding: 12px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+}
+
+/* BUTTONS */
+button {
+  font-size: 16px;
+  padding: 14px 18px;
+  margin: 6px;
+  border: none;
+  border-radius: 10px;
+  background: #ff6a00;
+  color: white;
+  font-weight: bold;
+  min-width: 110px;
+  cursor: pointer;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+/* DROPDOWNS */
+select {
+  font-size: 16px;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 8px;
+}
+
+/* =========================
+   MOBILE STACKING
+========================= */
+
+@media (max-width: 600px) {
+  .controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  button {
+    width: 90%;
+    max-width: 300px;
+  }
+
+  select {
+    width: 90%;
+    max-width: 300px;
+  }
 }
