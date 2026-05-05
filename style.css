@@ -74,7 +74,7 @@ body {
 }
 
 /* =========================
-   ROWS — fan layout (cards overlap, all 10 visible)
+   ROWS — fan layout (cards overlap only when needed)
 ========================= */
 .suit-section { margin-bottom: 8px; }
 
@@ -84,16 +84,18 @@ body {
   align-items: flex-start;
   padding: 8px 4px;
   min-height: 140px;
-  /* Negative gap via margin on children */
+  /* Container is full-width; cards inside use negative margin only when they don't fit */
 }
 
-/* Each card slides under the next; last card stays full-width.
-   position:relative establishes a stacking context so DOM order
-   = z-order (right-most card on top, top-left corner of each visible). */
+/* Cards spread with positive gap when room allows, overlap when squeezed.
+   The trick: margin-left is the LARGER of (a small positive gap) or
+   (a negative value that makes 10 cards fit the viewport).
+   Since margin can't directly use min(), we set a default positive margin
+   and override with negative only at narrow breakpoints. */
 .row .card {
-  margin-left: -50px;       /* desktop default — see media queries below */
+  margin-left: 8px;            /* normal spacing when there's room */
   position: relative;
-  transition: transform 0.2s ease, margin 0.2s ease;
+  transition: transform 0.2s ease;
 }
 .row .card:first-child {
   margin-left: 0;
@@ -104,9 +106,6 @@ body {
   transform: translateY(-12px);
   z-index: 20;
 }
-
-/* Stacking order: left card behind, right card in front
-   (so the value/suit in the top-left corner of each card is always visible) */
 
 /* =========================
    CARD STRUCTURE
@@ -337,36 +336,44 @@ body {
 }
 
 /* =========================
-   RESPONSIVE — Galaxy Fold front (~280px) + folded/unfolded
-   Fan overlap math: cards = 10, want them to fit container width.
-   Negative margin per card ≈ (10*cardW - containerW) / 9
+   RESPONSIVE — overlap ONLY when cards can't fit at normal spacing.
+   At wider viewports, cards spread with positive gap.
 ========================= */
 
-/* Galaxy Fold front cover (~280px) — tightest squeeze */
+/* Galaxy Fold front cover (~280px) */
 @media (max-width: 320px) {
   .card { width: 56px; height: 84px; }
   .deck { width: 70px; height: 100px; }
-  .row .card { margin-left: -34px; }   /* 10*56 - 56 = 504 visible, fits ~290px container */
+  .row .card { margin-left: -32px; }   /* heavy overlap to fit 10 cards */
   .btn  { font-size: 13px; padding: 10px 8px; }
 }
 
-/* Standard phones (~360–600px) */
-@media (min-width: 321px) and (max-width: 600px) {
+/* Small phones (~360–480px) */
+@media (min-width: 321px) and (max-width: 480px) {
+  .card { width: 64px; height: 96px; }
+  .deck { width: 80px; height: 115px; }
+  .row .card { margin-left: -28px; }   /* moderate overlap */
+}
+
+/* Large phones (~481–600px) */
+@media (min-width: 481px) and (max-width: 600px) {
   .card { width: 70px; height: 105px; }
   .deck { width: 85px; height: 120px; }
-  .row .card { margin-left: -38px; }   /* 10 cards span ~358px */
+  .row .card { margin-left: -18px; }   /* light overlap */
   .controls { padding-left: 8px; padding-right: 8px; }
   .btn { font-size: 14px; }
 }
 
-/* Tablet / Fold open (~700px+) */
-@media (min-width: 700px) {
-  .card { width: 100px; height: 150px; }
-  .deck { width: 110px; height: 156px; }
-  .row .card { margin-left: -20px; }   /* loose fan, cards mostly visible */
+/* Small tablet / Fold open (~601–800px) — cards comfortably fit, no overlap */
+@media (min-width: 601px) and (max-width: 800px) {
+  .card { width: 80px; height: 120px; }
+  .deck { width: 95px; height: 135px; }
+  .row .card { margin-left: 4px; }     /* tight positive gap */
 }
 
-/* Wide desktop (≥900px) — cards can sit with minimal overlap */
-@media (min-width: 900px) {
-  .row .card { margin-left: -10px; }
+/* Tablet+ (≥801px) — cards spread with comfortable spacing */
+@media (min-width: 801px) {
+  .card { width: 90px; height: 135px; }
+  .deck { width: 110px; height: 156px; }
+  .row .card { margin-left: 8px; }     /* normal positive gap */
 }
