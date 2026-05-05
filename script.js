@@ -12,10 +12,59 @@ let pickedCards = [];
 let mode = "grid";          // "grid" = show all cards face-up, "deck" = stack to draw from
 let lastPickedCardId = null;
 
-/* LOGOS — drop more entries here to expand the theme picker */
+/* LOGOS — 32 NFL teams.
+   Drop matching .png files into ./assets/logos/ to use them.
+   File naming: lowercase team key + .png  (e.g. cowboys.png, 49ers.png) */
 const logos = [
-  { id: "default", name: "Default", path: null },
-  { id: "cowboys", name: "Cowboys", path: "./assets/logos/cowboys.png" }
+  { id: "default",    name: "Default",              path: null },
+
+  // AFC East
+  { id: "bills",      name: "Buffalo Bills",        path: "./assets/logos/bills.png" },
+  { id: "dolphins",   name: "Miami Dolphins",       path: "./assets/logos/dolphins.png" },
+  { id: "patriots",   name: "New England Patriots", path: "./assets/logos/patriots.png" },
+  { id: "jets",       name: "New York Jets",        path: "./assets/logos/jets.png" },
+
+  // AFC North
+  { id: "ravens",     name: "Baltimore Ravens",     path: "./assets/logos/ravens.png" },
+  { id: "bengals",    name: "Cincinnati Bengals",   path: "./assets/logos/bengals.png" },
+  { id: "browns",     name: "Cleveland Browns",     path: "./assets/logos/browns.png" },
+  { id: "steelers",   name: "Pittsburgh Steelers",  path: "./assets/logos/steelers.png" },
+
+  // AFC South
+  { id: "texans",     name: "Houston Texans",       path: "./assets/logos/texans.png" },
+  { id: "colts",      name: "Indianapolis Colts",   path: "./assets/logos/colts.png" },
+  { id: "jaguars",    name: "Jacksonville Jaguars", path: "./assets/logos/jaguars.png" },
+  { id: "titans",     name: "Tennessee Titans",     path: "./assets/logos/titans.png" },
+
+  // AFC West
+  { id: "broncos",    name: "Denver Broncos",       path: "./assets/logos/broncos.png" },
+  { id: "chiefs",     name: "Kansas City Chiefs",   path: "./assets/logos/chiefs.png" },
+  { id: "raiders",    name: "Las Vegas Raiders",    path: "./assets/logos/raiders.png" },
+  { id: "chargers",   name: "Los Angeles Chargers", path: "./assets/logos/chargers.png" },
+
+  // NFC East
+  { id: "cowboys",    name: "Dallas Cowboys",       path: "./assets/logos/cowboys.png" },
+  { id: "giants",     name: "New York Giants",      path: "./assets/logos/giants.png" },
+  { id: "eagles",     name: "Philadelphia Eagles",  path: "./assets/logos/eagles.png" },
+  { id: "commanders", name: "Washington Commanders",path: "./assets/logos/commanders.png" },
+
+  // NFC North
+  { id: "bears",      name: "Chicago Bears",        path: "./assets/logos/bears.png" },
+  { id: "lions",      name: "Detroit Lions",        path: "./assets/logos/lions.png" },
+  { id: "packers",    name: "Green Bay Packers",    path: "./assets/logos/packers.png" },
+  { id: "vikings",    name: "Minnesota Vikings",    path: "./assets/logos/vikings.png" },
+
+  // NFC South
+  { id: "falcons",    name: "Atlanta Falcons",      path: "./assets/logos/falcons.png" },
+  { id: "panthers",   name: "Carolina Panthers",    path: "./assets/logos/panthers.png" },
+  { id: "saints",     name: "New Orleans Saints",   path: "./assets/logos/saints.png" },
+  { id: "buccaneers", name: "Tampa Bay Buccaneers", path: "./assets/logos/buccaneers.png" },
+
+  // NFC West
+  { id: "cardinals",  name: "Arizona Cardinals",    path: "./assets/logos/cardinals.png" },
+  { id: "rams",       name: "Los Angeles Rams",     path: "./assets/logos/rams.png" },
+  { id: "49ers",      name: "San Francisco 49ers",  path: "./assets/logos/49ers.png" },
+  { id: "seahawks",   name: "Seattle Seahawks",     path: "./assets/logos/seahawks.png" }
 ];
 
 let selectedThemes = {
@@ -201,23 +250,63 @@ function createCardElement(card, flipped, animateIn) {
 /* =========================
    OPTIONS MODAL
 ========================= */
+/* Build a single dropdown's options.
+   excludeId = the team ID to omit (the one selected in the OTHER dropdown).
+   "default" is never excluded — both dropdowns can have Default selected. */
+function populateDropdown(selectEl, excludeId, currentValue) {
+  const previousValue = currentValue || selectEl.value;
+  selectEl.innerHTML = "";
+
+  logos.forEach(l => {
+    if (l.id !== "default" && l.id === excludeId) return;
+    selectEl.add(new Option(l.name, l.id));
+  });
+
+  // Restore previous selection if it's still valid; otherwise fall back to Default
+  const stillValid = Array.from(selectEl.options).some(o => o.value === previousValue);
+  selectEl.value = stillValid ? previousValue : "default";
+}
+
+function refreshDropdowns() {
+  const heartsSelect = document.getElementById("heartsTheme");
+  const spadesSelect = document.getElementById("spadesTheme");
+
+  // Each dropdown excludes whatever the other currently shows
+  populateDropdown(heartsSelect, spadesSelect.value, heartsSelect.value);
+  populateDropdown(spadesSelect, heartsSelect.value, spadesSelect.value);
+}
+
 function initThemes() {
   const heartsSelect = document.getElementById("heartsTheme");
   const spadesSelect = document.getElementById("spadesTheme");
 
-  logos.forEach(l => {
-    heartsSelect.add(new Option(l.name, l.id));
-    spadesSelect.add(new Option(l.name, l.id));
-  });
+  // Initial population using the saved selectedThemes
+  populateDropdown(heartsSelect, selectedThemes.spades, selectedThemes.hearts);
+  populateDropdown(spadesSelect, selectedThemes.hearts, selectedThemes.spades);
 
-  heartsSelect.value = selectedThemes.hearts;
-  spadesSelect.value = selectedThemes.spades;
+  // Live refresh: when one changes, the other rebuilds without that team
+  heartsSelect.addEventListener("change", () => {
+    populateDropdown(
+      spadesSelect,
+      heartsSelect.value,
+      spadesSelect.value
+    );
+  });
+  spadesSelect.addEventListener("change", () => {
+    populateDropdown(
+      heartsSelect,
+      spadesSelect.value,
+      heartsSelect.value
+    );
+  });
 }
 
 function openOptions() {
-  // Sync dropdowns to current state every time
-  document.getElementById("heartsTheme").value = selectedThemes.hearts;
-  document.getElementById("spadesTheme").value = selectedThemes.spades;
+  // Re-sync dropdowns to current applied state every time the modal opens
+  const heartsSelect = document.getElementById("heartsTheme");
+  const spadesSelect = document.getElementById("spadesTheme");
+  populateDropdown(heartsSelect, selectedThemes.spades, selectedThemes.hearts);
+  populateDropdown(spadesSelect, selectedThemes.hearts, selectedThemes.spades);
   document.getElementById("optionsModal").classList.remove("hidden");
 }
 
