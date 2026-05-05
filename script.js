@@ -4,15 +4,14 @@ const suits = ["hearts", "spades"];
 let fullDeck = [];
 let remainingDeck = [];
 let pickedCards = [];
-let lastPickedCardId = null;
-let mode = "grid"; 
-// "grid" = show all cards
-// "deck" = show stacked deck
 
-/* PRELOAD LOGOS (PUT FILES IN /assets/logos/) */
+let mode = "grid";
+let lastPickedCardId = null;
+
+/* LOGOS */
 const logos = [
   { id: "default", name: "Default", path: null },
-  { id: "cowboys", name: "Cowboys", path: "./assets/logos/cowboys.svg" }
+  { id: "cowboys", name: "Cowboys", path: "./assets/logos/cowboys.png" }
 ];
 
 let selectedThemes = {
@@ -39,15 +38,13 @@ function createDeck() {
 function shuffleDeck() {
   const cards = document.querySelectorAll(".card");
 
-  // Step 1: animate all cards
+  // Animate cards
   cards.forEach(card => {
     card.classList.add("shuffle");
   });
 
-  // Step 2: WAIT so animation is visible
   setTimeout(() => {
-
-    // Shuffle data
+    // Shuffle logic
     for (let i = remainingDeck.length - 1; i > 0; i--) {
       let j = Math.floor(Math.random() * (i + 1));
       [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
@@ -55,13 +52,10 @@ function shuffleDeck() {
 
     pickedCards = [];
     lastPickedCardId = null;
-
-    // Step 3: NOW switch to deck view
     mode = "deck";
 
     render();
-
-  }, 600); // ← important delay
+  }, 500);
 }
 
 /* PICK CARD */
@@ -72,63 +66,26 @@ function pickCard() {
   pickedCards.push(card);
   lastPickedCardId = card.id;
 
-  const deck = document.getElementById("deck");
-
-  // Create temp card at deck position
-  const tempCard = createCardElement(card, false);
-  tempCard.classList.add("dealing");
-
-  const deckRect = deck.getBoundingClientRect();
-
-  tempCard.style.left = deckRect.left + "px";
-  tempCard.style.top = deckRect.top + "px";
-
-  document.body.appendChild(tempCard);
-
-  // Render target position
   render();
-
-  const targetCards = document.querySelectorAll(".card");
-  const target = targetCards[targetCards.length - 1];
-  const targetRect = target.getBoundingClientRect();
-
-  // Animate movement
-  requestAnimationFrame(() => {
-    tempCard.style.transform = `translate(
-      ${targetRect.left - deckRect.left}px,
-      ${targetRect.top - deckRect.top}px
-    )`;
-  });
-
-  // Flip mid-way
-  setTimeout(() => {
-    tempCard.classList.add("flipped");
-  }, 200);
-
-  // Cleanup
-  setTimeout(() => {
-    tempCard.remove();
-    render();
-  }, 450);
 }
 
 /* RESET */
 function resetDeck() {
   createDeck();
   pickedCards = [];
-  lastPickedCardId = null; // ✅ ADD THIS
+  lastPickedCardId = null;
   mode = "grid";
   render();
 }
 
-/* GET LOGO PATH */
+/* GET LOGO */
 function getLogo(suit) {
   const themeId = selectedThemes[suit];
   const logo = logos.find(l => l.id === themeId);
   return logo?.path;
 }
 
-/* CREATE CARD SVG */
+/* CARD SVG */
 function createCardSVG(card) {
   const color = card.suit === "hearts" ? "red" : "black";
   const logo = getLogo(card.suit);
@@ -162,9 +119,7 @@ function render() {
   heartsDiv.innerHTML = "";
   spadesDiv.innerHTML = "";
 
-  // =========================
-  // GRID MODE (initial)
-  // =========================
+  // GRID MODE
   if (mode === "grid") {
     fullDeck.forEach(card => {
       const cardEl = createCardElement(card, true);
@@ -177,15 +132,15 @@ function render() {
     });
   }
 
-  // =========================
-  // DECK MODE (after shuffle)
-  // =========================
+  // DECK MODE
   if (mode === "deck") {
+    // Show stacked deck (top 3 cards)
     remainingDeck.slice(0, 3).forEach(card => {
       const cardEl = createCardElement(card, false);
       deckDiv.appendChild(cardEl);
     });
 
+    // Show picked cards
     pickedCards.forEach(card => {
       const cardEl = createCardElement(card, true);
 
@@ -198,14 +153,10 @@ function render() {
   }
 }
 
+/* CARD ELEMENT */
 function createCardElement(card, flipped) {
   const cardEl = document.createElement("div");
   cardEl.className = "card";
-
-  // If it's NOT the newest card → disable animation
-  if (card.id !== lastPickedCardId) {
-    cardEl.classList.add("no-anim");
-  }
 
   cardEl.innerHTML = `
     <div class="card-inner">
@@ -219,11 +170,14 @@ function createCardElement(card, flipped) {
   if (flipped) {
     if (card.id === lastPickedCardId) {
       // Animate ONLY newest card
+      cardEl.classList.add("deal-in");
+
       setTimeout(() => {
         cardEl.classList.add("flipped");
-      }, 50);
+      }, 120);
     } else {
-      // Instantly flipped, NO animation
+      // Old cards = no animation
+      cardEl.classList.add("no-anim");
       cardEl.classList.add("flipped");
     }
   }
@@ -237,11 +191,8 @@ function initThemes() {
   const spadesSelect = document.getElementById("spadesTheme");
 
   logos.forEach(l => {
-    let opt1 = new Option(l.name, l.id);
-    let opt2 = new Option(l.name, l.id);
-
-    heartsSelect.add(opt1);
-    spadesSelect.add(opt2);
+    heartsSelect.add(new Option(l.name, l.id));
+    spadesSelect.add(new Option(l.name, l.id));
   });
 
   heartsSelect.onchange = (e) => {
