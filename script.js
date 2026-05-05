@@ -1,196 +1,173 @@
-// -----------------------------
-// DATA
-// -----------------------------
-const suits = ["hearts", "spades"];
-const values = ["A","2","3","4","5","6","7","8","9","10"];
-
-const fullDeck = [];
-
-suits.forEach(suit => {
-  values.forEach(value => {
-    fullDeck.push({
-      suit,
-      value,
-      id: `${suit}-${value}`
-    });
-  });
-});
-
-let shuffledDeck = [];
-let remainingDeck = [];
-let pickedCards = [];
-
-// -----------------------------
-// LOGOS (mock repo list)
-// -----------------------------
+// --- MOCK DATA / CONFIG ---
 const availableLogos = [
-  { id: "default", name: "Default", path: null },
-  { id: "cowboys", name: "Cowboys", path: "./assets/logos/cowboys.svg" },
-  { id: "fire", name: "Fire", path: "./assets/logos/fire.svg" }
+    { id: "default", name: "Standard Suit", path: "" },
+    { id: "cowboys", name: "Cowboys", path: "./assets/logos/cowboys.svg" },
+    { id: "fire", name: "Fire", path: "./assets/logos/fire.svg" },
+    { id: "skull", name: "Skull", path: "./assets/logos/skull.png" }
 ];
 
-let selectedThemes = {
-  hearts: "default",
-  spades: "default"
-};
+const suits = ["hearts", "spades"];
+const values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10"];
 
-// -----------------------------
-// DOM
-// -----------------------------
-const heartsRow = document.getElementById("heartsRow");
-const spadesRow = document.getElementById("spadesRow");
+// --- STATE ---
+let fullDeck = [];
+let shuffledDeck = [];
+let pickedCards = [];
+let selectedThemes = { hearts: "default", spades: "default" };
 
-const heartsThemeSelect = document.getElementById("heartsTheme");
-const spadesThemeSelect = document.getElementById("spadesTheme");
-
-// -----------------------------
-// LOAD THEMES
-// -----------------------------
-function loadThemes() {
-  availableLogos.forEach(logo => {
-    heartsThemeSelect.add(new Option(logo.name, logo.id));
-    spadesThemeSelect.add(new Option(logo.name, logo.id));
-  });
+// --- INITIALIZATION ---
+function init() {
+    createDeck();
+    populateDropdowns();
+    renderInitialState();
+    setupEventListeners();
 }
 
-heartsThemeSelect.onchange = () => {
-  selectedThemes.hearts = heartsThemeSelect.value;
-  renderInitial();
-};
-
-spadesThemeSelect.onchange = () => {
-  selectedThemes.spades = spadesThemeSelect.value;
-  renderInitial();
-};
-
-// -----------------------------
-// SHUFFLE (FISHER-YATES)
-// -----------------------------
-function shuffleDeck(deck) {
-  let arr = [...deck];
-
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-
-  return arr;
+function createDeck() {
+    fullDeck = [];
+    suits.forEach(suit => {
+        values.forEach(value => {
+            fullDeck.push({ suit, value, id: `${suit}-${value}` });
+        });
+    });
 }
 
-// -----------------------------
-// CARD FRONT (SVG)
-// -----------------------------
-function createCardFront(card) {
-  const color = card.suit === "hearts" ? "red" : "black";
-
-  return `
-  <svg viewBox="0 0 100 140" width="100%" height="100%">
-    <rect width="100" height="140" rx="10" fill="white"/>
-
-    <text x="10" y="20"
-      font-size="16"
-      fill="${color}"
-      font-family="Arial"
-      font-weight="bold">
-      ${card.value}
-    </text>
-
-    <text x="50" y="80"
-      text-anchor="middle"
-      dominant-baseline="middle"
-      font-size="48"
-      fill="${color}"
-      font-family="Arial">
-      ${card.suit === "hearts" ? "♥" : "♠"}
-    </text>
-  </svg>
-  `;
+function populateDropdowns() {
+    const hSelect = document.getElementById('hearts-theme');
+    const sSelect = document.getElementById('spades-theme');
+    
+    availableLogos.forEach(logo => {
+        const opt = `<option value="${logo.id}">${logo.name}</option>`;
+        hSelect.innerHTML += opt;
+        sSelect.innerHTML += opt;
+    });
 }
 
-// -----------------------------
-// CREATE CARD (FRONT + BACK)
-// -----------------------------
-function createCardElement(card, faceDown = false) {
-  const div = document.createElement("div");
-  div.className = "card";
+// --- CORE LOGIC ---
 
-  div.innerHTML = `
-    <div class="card-inner">
-      <div class="card-front">
-        ${createCardFront(card)}
-      </div>
-      <div class="card-back">
-        BACK
-      </div>
-    </div>
-  `;
-
-  if (!faceDown) {
-    div.classList.add("flipped");
-  }
-
-  return div;
-}
-
-// -----------------------------
-// INITIAL RENDER (ALL FACE UP)
-// -----------------------------
-function renderInitial() {
-  heartsRow.innerHTML = "";
-  spadesRow.innerHTML = "";
-
-  fullDeck.forEach(card => {
-    const el = createCardElement(card, false);
-
-    if (card.suit === "hearts") {
-      heartsRow.appendChild(el);
-    } else {
-      spadesRow.appendChild(el);
+/**
+ * Fisher-Yates Shuffle Algorithm
+ * Swaps each element with a random one before it.
+ */
+function shuffle(array) {
+    let m = array.length, t, i;
+    while (m) {
+        i = Math.floor(Math.random() * m--);
+        t = array[m];
+        array[m] = array[i];
+        array[i] = t;
     }
-  });
+    return array;
 }
 
-// -----------------------------
-// PICK CARD
-// -----------------------------
+function handleShuffle() {
+    const rows = document.querySelectorAll('.card-row');
+    rows.forEach(r => r.classList.add('shuffling'));
+    
+    setTimeout(() => {
+        shuffledDeck = shuffle([...fullDeck]);
+        pickedCards = [];
+        renderRows();
+        rows.forEach(r => r.classList.remove('shuffling'));
+        document.getElementById('pick-btn').disabled = false;
+    }, 600);
+}
+
 function pickCard() {
-  if (remainingDeck.length === 0) return;
-
-  const card = remainingDeck.shift();
-  pickedCards.push(card);
-
-  const el = createCardElement(card, true);
-
-  const row = card.suit === "hearts" ? heartsRow : spadesRow;
-  row.appendChild(el);
-
-  setTimeout(() => {
-    el.classList.add("flipped");
-  }, 100);
+    if (shuffledDeck.length === 0) {
+        document.getElementById('pick-btn').disabled = true;
+        return;
+    }
+    const card = shuffledDeck.pop();
+    pickedCards.push(card);
+    renderRows();
 }
 
-// -----------------------------
-// BUTTONS
-// -----------------------------
-document.getElementById("shuffleBtn").onclick = () => {
-  shuffledDeck = shuffleDeck(fullDeck);
-  remainingDeck = [...shuffledDeck];
-  pickedCards = [];
+// --- RENDERING ---
 
-  heartsRow.innerHTML = "";
-  spadesRow.innerHTML = "";
-};
+function createCardSVG(card) {
+    const themeId = selectedThemes[card.suit];
+    const theme = availableLogos.find(l => l.id === themeId);
+    const isRed = card.suit === "hearts";
+    const color = isRed ? "#e74c3c" : "#2c3e50";
+    const suitSymbol = isRed ? "♥" : "♠";
 
-document.getElementById("pickBtn").onclick = pickCard;
+    // preserveAspectRatio="xMidYMid slice" ensures the logo fills the safe area
+    // and crops from the center if dimensions don't match.
+    let centerContent = "";
+    if (themeId === "default") {
+        centerContent = `<text x="50%" y="60%" text-anchor="middle" font-size="50" fill="${color}">${suitSymbol}</text>`;
+    } else {
+        centerContent = `
+            <image href="${theme.path}" x="25" y="50" width="70" height="70" 
+            preserveAspectRatio="xMidYMid slice" />`;
+    }
 
-document.getElementById("resetBtn").onclick = () => {
-  remainingDeck = [];
-  pickedCards = [];
-  renderInitial();
-};
+    return `
+        <svg viewBox="0 0 120 170" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100%" height="100%" fill="white" rx="10" />
+            <text x="10" y="25" font-size="18" font-weight="bold" fill="${color}">${card.value}</text>
+            <text x="10" y="45" font-size="14" fill="${color}">${suitSymbol}</text>
+            ${centerContent}
+            <text x="110" y="160" font-size="18" font-weight="bold" fill="${color}" transform="rotate(180, 110, 160)">${card.value}</text>
+        </svg>
+    `;
+}
 
-// -----------------------------
-// START
-// -----------------------------
-loadThemes();
-renderInitial();
+function renderRows() {
+    const hRow = document.getElementById('hearts-row');
+    const sRow = document.getElementById('spades-row');
+    hRow.innerHTML = "";
+    sRow.innerHTML = "";
+
+    pickedCards.forEach((card, index) => {
+        const container = document.createElement('div');
+        container.className = "card-container";
+        container.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front">${createCardSVG(card)}</div>
+                <div class="card-back"></div>
+            </div>
+        `;
+        
+        const targetRow = card.suit === "hearts" ? hRow : sRow;
+        targetRow.appendChild(container);
+
+        // Trigger flip animation on next frame to ensure DOM is ready
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                container.classList.add('is-flipped');
+            }, index * 100); // Staggered flip effect
+        });
+    });
+}
+
+function renderInitialState() {
+    // Standard face-up display of all 20 cards
+    pickedCards = [...fullDeck];
+    renderRows();
+}
+
+function setupEventListeners() {
+    document.getElementById('shuffle-btn').addEventListener('click', handleShuffle);
+    document.getElementById('pick-btn').addEventListener('click', pickCard);
+    
+    document.getElementById('reset-btn').addEventListener('click', () => {
+        shuffledDeck = [];
+        createDeck();
+        renderInitialState();
+        document.getElementById('pick-btn').disabled = false;
+    });
+
+    document.getElementById('hearts-theme').addEventListener('change', (e) => {
+        selectedThemes.hearts = e.target.value;
+        renderRows();
+    });
+
+    document.getElementById('spades-theme').addEventListener('change', (e) => {
+        selectedThemes.spades = e.target.value;
+        renderRows();
+    });
+}
+
+window.onload = init;
