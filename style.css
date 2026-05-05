@@ -237,10 +237,11 @@ body {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-top: 1px solid rgba(74, 144, 255, 0.2);
-  padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 16px;
   z-index: 50;
 }
@@ -248,17 +249,19 @@ body {
 .deck-wrap {
   display: flex;
   flex-direction: row;
-  align-items: center;
+  flex-wrap: nowrap;
+  align-items: flex-end;
   gap: 8px;
   flex: 0 0 auto;
 }
 .deck-wrap .hint {
-  margin: 0;
+  margin: 0 0 4px 0;
   text-align: right;
   line-height: 1.2;
   font-size: 11px;
   letter-spacing: 1px;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .controls {

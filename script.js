@@ -141,6 +141,12 @@ function render() {
       const cardEl = createCardElement(card, true, false);
       (card.suit === "hearts" ? heartsDiv : spadesDiv).appendChild(cardEl);
     });
+
+    // Show a card-back stack on the deck even in grid mode (visual placeholder)
+    fullDeck.slice(0, 3).forEach(card => {
+      const cardEl = createCardElement(card, false, false);
+      deckDiv.appendChild(cardEl);
+    });
     return;
   }
 
