@@ -88,27 +88,32 @@ function shuffleDeck(deck) {
 // -----------------------------
 function createCardFront(card) {
   const color = card.suit === "hearts" ? "red" : "black";
-  const theme = selectedThemes[card.suit];
-  const logo = availableLogos.find(l => l.id === theme);
 
-  // SVG with safe center area
   return `
-  <svg viewBox="0 0 100 140">
-    <rect x="0" y="0" width="100" height="140" rx="10" fill="white" />
+  <svg viewBox="0 0 100 140" width="100%" height="100%">
+    
+    <!-- Card background -->
+    <rect x="0" y="0" width="100" height="140" rx="12" fill="white" />
 
-    <text x="8" y="18" font-size="14" fill="${color}">
+    <!-- Top-left value -->
+    <text x="10" y="20"
+      font-size="16"
+      fill="${color}"
+      font-family="Arial, sans-serif"
+      font-weight="bold">
       ${card.value}
     </text>
 
-    ${
-      logo && logo.path
-        ? `<image href="${logo.path}" 
-            x="20" y="30" width="60" height="80"
-            preserveAspectRatio="xMidYMid slice" />`
-        : `<text x="50" y="80" text-anchor="middle" font-size="40" fill="${color}">
-            ${card.suit === "hearts" ? "♥" : "♠"}
-          </text>`
-    }
+    <!-- Center suit -->
+    <text x="50" y="80"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      font-size="48"
+      fill="${color}"
+      font-family="Arial, sans-serif">
+      ${card.suit === "hearts" ? "♥" : "♠"}
+    </text>
+
   </svg>
   `;
 }
