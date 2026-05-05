@@ -261,3 +261,42 @@ document.getElementById("deck").addEventListener("click", pickCard);
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeOptions();
 });
+
+/* =========================
+   FULLSCREEN
+========================= */
+function toggleFullscreen() {
+  const inFullscreen =
+    document.fullscreenElement || document.webkitFullscreenElement;
+
+  if (!inFullscreen) {
+    const el = document.documentElement;
+    const req =
+      el.requestFullscreen ||
+      el.webkitRequestFullscreen ||
+      el.msRequestFullscreen;
+    if (req) req.call(el).catch(() => {});
+  } else {
+    const exit =
+      document.exitFullscreen ||
+      document.webkitExitFullscreen ||
+      document.msExitFullscreen;
+    if (exit) exit.call(document).catch(() => {});
+  }
+}
+
+// Sync icon state with actual fullscreen state (handles Esc key, etc.)
+function syncFullscreenState() {
+  const inFullscreen =
+    document.fullscreenElement || document.webkitFullscreenElement;
+  document.body.classList.toggle("is-fullscreen", !!inFullscreen);
+}
+document.addEventListener("fullscreenchange", syncFullscreenState);
+document.addEventListener("webkitfullscreenchange", syncFullscreenState);
+
+// Hide the button entirely if the browser doesn't support fullscreen
+if (!document.documentElement.requestFullscreen &&
+    !document.documentElement.webkitRequestFullscreen) {
+  const btn = document.getElementById("fsToggle");
+  if (btn) btn.style.display = "none";
+}

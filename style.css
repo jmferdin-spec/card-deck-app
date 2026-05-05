@@ -224,6 +224,40 @@ body {
 .card.no-anim             { animation: none !important; }
 
 /* =========================
+   FULLSCREEN TOGGLE
+========================= */
+.fs-toggle {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(16, 38, 80, 0.7);
+  color: var(--silver);
+  border: 1px solid rgba(200, 208, 220, 0.25);
+  border-radius: 8px;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 60;
+  padding: 0;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+}
+.fs-toggle:hover {
+  background: rgba(42, 109, 217, 0.7);
+  color: var(--white);
+}
+.fs-toggle:active { transform: scale(0.95); }
+
+/* Icon swap: show enter icon by default, exit icon when in fullscreen */
+.fs-toggle .fs-icon-exit  { display: none; }
+body.is-fullscreen .fs-toggle .fs-icon-enter { display: none; }
+body.is-fullscreen .fs-toggle .fs-icon-exit  { display: inline; }
+
+/* =========================
    ACTION BAR (fixed bottom)
    Deck on the left, controls on the right.
    On narrow screens, stacks vertically (deck on top, buttons below).
