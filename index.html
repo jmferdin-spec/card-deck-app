@@ -1,28 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Card Deck App</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Deck Master</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>Card Deck</h1>
+    <header>
+        <h1>Mini Deck Pro</h1>
+        <div class="controls">
+            <div class="theme-group">
+                <label>Hearts Theme:</label>
+                <select id="hearts-theme"></select>
+            </div>
+            <div class="theme-group">
+                <label>Spades Theme:</label>
+                <select id="spades-theme"></select>
+            </div>
+            <div class="button-group">
+                <button id="shuffle-btn">Shuffle</button>
+                <button id="pick-btn">Pick Card</button>
+                <button id="reset-btn">Reset</button>
+            </div>
+        </div>
+    </header>
 
-<div class="controls">
-  <select id="heartsTheme"></select>
-  <select id="spadesTheme"></select>
+    <main id="app">
+        <section class="display-area">
+            <h3>Hearts</h3>
+            <div id="hearts-row" class="card-row"></div>
+            
+            <h3>Spades</h3>
+            <div id="spades-row" class="card-row"></div>
+        </section>
+    </main>
 
-  <button id="shuffleBtn">Shuffle</button>
-  <button id="pickBtn">Pick Card</button>
-  <button id="resetBtn">Reset</button>
-</div>
-
-<div class="board">
-  <div class="row" id="heartsRow"></div>
-  <div class="row" id="spadesRow"></div>
-</div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
