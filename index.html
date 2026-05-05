@@ -10,28 +10,39 @@
 <h2>Deck</h2>
 <div id="deck" class="deck"></div>
 
-<h2>Hearts</h2>
+<h2 id="heartsLabel">Hearts</h2>
 <div id="hearts" class="row"></div>
 
-<h2>Spades</h2>
+<h2 id="spadesLabel">Spades</h2>
 <div id="spades" class="row"></div>
 
+<!-- CONTROLS -->
 <div class="controls">
-
-  <div>
-    <label>Hearts Theme</label><br>
-    <select id="heartsTheme"></select>
-  </div>
-
-  <div>
-    <label>Spades Theme</label><br>
-    <select id="spadesTheme"></select>
-  </div>
-
   <button onclick="shuffleDeck()">Shuffle</button>
-  <button onclick="pickCard()">Pick Card</button>
   <button onclick="resetDeck()">Reset</button>
+  <button onclick="openOptions()">Options</button>
+</div>
 
+<!-- OPTIONS MODAL -->
+<div id="optionsModal" class="modal hidden">
+  <div class="modal-content">
+
+    <h3>Options</h3>
+
+    <div style="margin-bottom:10px;">
+      <label>Hearts Theme</label><br>
+      <select id="heartsTheme"></select>
+    </div>
+
+    <div style="margin-bottom:15px;">
+      <label>Spades Theme</label><br>
+      <select id="spadesTheme"></select>
+    </div>
+
+    <button onclick="applyThemes()">Apply</button>
+    <button onclick="closeOptions()">Close</button>
+
+  </div>
 </div>
 
 <script src="script.js"></script>
