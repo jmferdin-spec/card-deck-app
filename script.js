@@ -383,11 +383,12 @@ function createCardSVG(card) {
     <text x="8" y="34" fill="${color}" font-size="14"
           font-family="Arial, sans-serif">${symbol}</text>
 
-    <!-- bottom-right corner (rotated) -->
-    <g transform="rotate(180 92 138)">
-      <text x="92" y="138" fill="${color}" font-size="14" font-weight="700"
+    <!-- bottom-right corner: rotated mirror of top-left.
+         Rotating around the SVG center (50,75) maps top-left coords to bottom-right. -->
+    <g transform="rotate(180 50 75)">
+      <text x="8" y="20" fill="${color}" font-size="14" font-weight="700"
             font-family="Arial, sans-serif">${card.value}</text>
-      <text x="92" y="124" fill="${color}" font-size="14"
+      <text x="8" y="34" fill="${color}" font-size="14"
             font-family="Arial, sans-serif">${symbol}</text>
     </g>
 
