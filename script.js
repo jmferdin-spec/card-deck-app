@@ -190,39 +190,55 @@ function startReveal(card) {
   setTimeout(finish, 2700);
 }
 
-/* Estimate where the next card in the row will land.
-   If the row has cards, use the last one's right edge + gap.
-   If empty, use the row container's left edge. */
+/* Estimate where the next card in the row will land AFTER it's added.
+   The row uses justify-content:center so cards are centered as a group.
+   We predict by: (a) figuring out the size each card will be when N+1 cards are present,
+   (b) where the centered group will sit, (c) where the new (rightmost) card lands. */
 function predictRowSlotRect(rowEl) {
   const rowRect = rowEl.getBoundingClientRect();
-  const cards = rowEl.querySelectorAll(".card");
   const styles = getComputedStyle(rowEl);
   const gap = parseFloat(styles.gap) || 6;
-
-  // Estimate card size: peek at row CSS or fall back to a sensible default
-  let cardW, cardH;
-  if (cards.length > 0) {
-    const r = cards[cards.length - 1].getBoundingClientRect();
-    cardW = r.width;
-    cardH = r.height;
-    return {
-      left: r.right + gap,
-      top: r.top,
-      width: cardW,
-      height: cardH
-    };
-  }
-
-  // Empty row — calculate what flex:1 would size to
   const padL = parseFloat(styles.paddingLeft) || 0;
   const padR = parseFloat(styles.paddingRight) || 0;
   const innerW = rowRect.width - padL - padR;
-  const totalGap = gap * 9;     // 10 cards = 9 gaps
-  cardW = Math.min((innerW - totalGap) / 10, 110);
-  cardH = cardW * 1.5;          // aspect-ratio 2/3
+
+  // How many cards are currently in the row + the new one we're about to add
+  const existingCards = rowEl.querySelectorAll(".card").length;
+  const newCount = existingCards + 1;
+
+  // Read the .row .card max-width so our prediction matches CSS
+  let maxCardW = 110;
+  const sampleCard = rowEl.querySelector(".card");
+  if (sampleCard) {
+    maxCardW = parseFloat(getComputedStyle(sampleCard).maxWidth) || maxCardW;
+  } else {
+    // No existing card to measure — read max-width from a fresh stylesheet lookup
+    // by creating a temp invisible card
+    const probe = document.createElement("div");
+    probe.className = "card";
+    probe.style.visibility = "hidden";
+    rowEl.appendChild(probe);
+    maxCardW = parseFloat(getComputedStyle(probe).maxWidth) || maxCardW;
+    rowEl.removeChild(probe);
+  }
+
+  // flex:1 wants to fill, capped at max-width. With newCount cards:
+  // available per card = (innerW - (newCount-1)*gap) / newCount, capped at maxCardW
+  const totalGap = gap * (newCount - 1);
+  const cardW = Math.min((innerW - totalGap) / newCount, maxCardW);
+  const cardH = cardW * 1.5;  // aspect-ratio 2/3
+
+  // Centered group total width
+  const groupW = cardW * newCount + totalGap;
+  const groupLeft = rowRect.left + padL + (innerW - groupW) / 2;
+
+  // The NEW card is the last one in the centered group
+  const newCardLeft = groupLeft + (newCount - 1) * (cardW + gap);
+  const newCardTop = rowRect.top + (rowRect.height - cardH) / 2;
+
   return {
-    left: rowRect.left + padL,
-    top: rowRect.top + (rowRect.height - cardH) / 2,
+    left: newCardLeft,
+    top: newCardTop,
     width: cardW,
     height: cardH
   };

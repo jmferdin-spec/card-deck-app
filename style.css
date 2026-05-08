@@ -148,6 +148,11 @@ body {
   background: url("./assets/back.png") center / cover no-repeat;
   background-color: var(--navy-deep); /* fallback */
   border: 1px solid rgba(200, 208, 220, 0.15);
+  /* Smoother scale-down on high-DPI displays */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0); /* forces GPU compositing for cleaner scaling */
 }
 
 /* FRONT = rotated, hidden until .flipped */
@@ -274,6 +279,9 @@ body {
   background: url("./assets/back.png") center / cover no-repeat;
   background-color: var(--navy-deep);
   border: 1px solid rgba(200, 208, 220, 0.25);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
+  transform: translateZ(0);
 }
 .reveal-card .card-front {
   transform: rotateY(180deg);
