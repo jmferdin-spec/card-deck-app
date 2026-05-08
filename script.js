@@ -56,6 +56,12 @@ let selectedThemes = {
   spades: "default"
 };
 
+// Which suit shows in the top row. Changed via Options modal.
+let topSuit = "hearts";
+
+// Pending value during modal session — only applied on Apply
+let pendingTopSuit = "hearts";
+
 /* =========================
    DECK BUILDING
 ========================= */
@@ -536,6 +542,11 @@ function openOptions() {
   const spadesSelect = document.getElementById("spadesTheme");
   populateDropdown(heartsSelect, selectedThemes.spades, selectedThemes.hearts);
   populateDropdown(spadesSelect, selectedThemes.hearts, selectedThemes.spades);
+
+  // Sync the top-suit toggle to the currently applied value
+  pendingTopSuit = topSuit;
+  updateSuitToggleUI();
+
   document.getElementById("optionsModal").classList.remove("hidden");
 }
 
@@ -550,9 +561,29 @@ function modalBackdropClick(e) {
 function applyThemes() {
   selectedThemes.hearts = document.getElementById("heartsTheme").value;
   selectedThemes.spades = document.getElementById("spadesTheme").value;
+  topSuit = pendingTopSuit;
+  applySuitOrder();
   updateLabels();
   render();
   closeOptions();
+}
+
+/* =========================
+   TOP SUIT TOGGLE
+========================= */
+function setTopSuitChoice(suit) {
+  pendingTopSuit = suit;
+  updateSuitToggleUI();
+}
+
+function updateSuitToggleUI() {
+  document.querySelectorAll(".suit-toggle-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.suit === pendingTopSuit);
+  });
+}
+
+function applySuitOrder() {
+  document.body.classList.toggle("spades-on-top", topSuit === "spades");
 }
 
 function updateLabels() {

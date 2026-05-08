@@ -638,6 +638,53 @@ body.is-fullscreen .fs-toggle .fs-icon-exit  { display: inline; }
 }
 
 /* =========================
+   SUIT TOGGLE (in Options modal)
+========================= */
+.suit-toggle {
+  display: flex;
+  gap: 6px;
+  background: var(--navy-deep);
+  border: 1px solid rgba(200, 208, 220, 0.25);
+  border-radius: 8px;
+  padding: 4px;
+}
+.suit-toggle-btn {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: var(--silver-soft);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.suit-toggle-btn.active {
+  background: linear-gradient(180deg, var(--blue-bright), var(--blue-accent));
+  color: var(--white);
+}
+.suit-toggle-btn:not(.active):hover {
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* =========================
+   SUIT ORDER
+   The .page is a column flex; suit sections use `order` to swap.
+   When body has .spades-on-top, we flip the orders.
+========================= */
+.page {
+  display: flex;
+  flex-direction: column;
+}
+.suit-section.section-hearts { order: 1; }
+.suit-section.section-spades { order: 2; }
+body.spades-on-top .suit-section.section-hearts { order: 2; }
+body.spades-on-top .suit-section.section-spades { order: 1; }
+
+/* =========================
    RESPONSIVE
    Row cards size themselves via flex:1 + max-width.
    Only the deck stack and gaps need breakpoint tuning.

@@ -44,12 +44,12 @@
 
   <main class="page">
 
-    <section class="suit-section">
+    <section class="suit-section section-hearts">
       <h2 class="section-title" id="heartsLabel">Hearts</h2>
       <div id="hearts" class="row"></div>
     </section>
 
-    <section class="suit-section">
+    <section class="suit-section section-spades">
       <h2 class="section-title" id="spadesLabel">Spades</h2>
       <div id="spades" class="row"></div>
     </section>
@@ -83,6 +83,14 @@
       <div class="field">
         <label for="spadesTheme">Spades Theme</label>
         <select id="spadesTheme"></select>
+      </div>
+
+      <div class="field">
+        <label>Top Row</label>
+        <div class="suit-toggle" role="radiogroup" aria-label="Top suit">
+          <button type="button" class="suit-toggle-btn" data-suit="hearts" onclick="setTopSuitChoice('hearts')">Hearts</button>
+          <button type="button" class="suit-toggle-btn" data-suit="spades" onclick="setTopSuitChoice('spades')">Spades</button>
+        </div>
       </div>
 
       <div class="modal-actions">
