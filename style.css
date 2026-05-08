@@ -224,6 +224,109 @@ body {
 .card.no-anim             { animation: none !important; }
 
 /* =========================
+   REVEAL CEREMONY
+   A card is cloned to a fixed-position element that:
+   1. Scales up from the deck (back showing)
+   2. Holds center with back showing (suspense)
+   3. Flips to face
+   4. Holds with face showing
+   5. Shrinks and flies to its slot in the suit row
+========================= */
+.reveal-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 285px;
+  z-index: 90;
+  pointer-events: none;
+  perspective: 1200px;
+  /* Variables drive the start/end transform; set inline by JS */
+  --start-x: 0px;
+  --start-y: 0px;
+  --start-scale: 0.5;
+  --end-x: 0px;
+  --end-y: 0px;
+  --end-scale: 0.4;
+  /* The wrapper handles the X/Y flight + scale */
+  animation: reveal-fly 2.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+  transform-origin: center center;
+}
+.reveal-card .card-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  /* The inner handles the back→face flip independently */
+  animation: reveal-flip 2.5s ease-in-out both;
+}
+.reveal-card .card-front,
+.reveal-card .card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+.reveal-card .card-back {
+  background: url("./assets/back.png") center / cover no-repeat;
+  background-color: var(--navy-deep);
+  border: 1px solid rgba(200, 208, 220, 0.25);
+}
+.reveal-card .card-front {
+  transform: rotateY(180deg);
+  background: var(--white);
+  border: 1px solid var(--silver-soft);
+}
+.reveal-card .card-front svg { width: 100%; height: 100%; display: block; }
+
+/* Fly animation: deck origin → center (big) → row destination (small)
+   Note: the -50% offsets center the element on its top/left:50% anchor */
+@keyframes reveal-fly {
+  0% {
+    transform:
+      translate(-50%, -50%)
+      translate(var(--start-x), var(--start-y))
+      scale(var(--start-scale));
+    opacity: 0;
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform:
+      translate(-50%, -50%)
+      translate(var(--end-x), var(--end-y))
+      scale(var(--end-scale));
+    opacity: 1;
+  }
+}
+
+/* Flip timing inside the same 2.5s window:
+   0–20%   = flying in (back)
+   20–40%  = holding center (back, suspense)
+   40–64%  = flipping
+   64–80%  = holding center (face)
+   80–100% = flying out (face) */
+@keyframes reveal-flip {
+  0%, 40%   { transform: rotateY(0deg); }
+  64%, 100% { transform: rotateY(180deg); }
+}
+
+/* Skip: cut to the end immediately */
+.reveal-card.skip {
+  animation: none;
+  opacity: 0;
+}
+
+/* =========================
    FULLSCREEN TOGGLE
 ========================= */
 .fs-toggle {

@@ -96,15 +96,171 @@ function shuffleDeck() {
   }, 450);
 }
 
+/* =========================
+   REVEAL CEREMONY
+========================= */
+let revealing = false;        // lock to prevent overlapping ceremonies
+let activeReveal = null;      // reference to the current ceremony element
+
 function pickCard() {
-  if (mode !== "deck") return;            // can't pick from the grid view
+  if (mode !== "deck") return;
   if (remainingDeck.length === 0) return;
+  if (revealing) return;       // ignore taps while a reveal is in progress
 
   const card = remainingDeck.shift();
   pickedCards.push(card);
   lastPickedCardId = card.id;
+
+  // Re-render the deck immediately so its size shrinks if this was the last card.
+  // We delay rendering the picked card into the row until the ceremony finishes.
+  renderDeckOnly();
+
+  startReveal(card);
+}
+
+function startReveal(card) {
+  revealing = true;
+
+  // Where the deck currently sits on screen
+  const deckEl = document.getElementById("deck");
+  const deckRect = deckEl.getBoundingClientRect();
+
+  // Where the card will end up — predict by counting existing cards in the suit row
+  const rowEl = card.suit === "hearts"
+    ? document.getElementById("hearts")
+    : document.getElementById("spades");
+  const endRect = predictRowSlotRect(rowEl);
+
+  // Build the ceremony card
+  const reveal = document.createElement("div");
+  reveal.className = "reveal-card";
+  reveal.innerHTML = `
+    <div class="card-inner">
+      <div class="card-back"></div>
+      <div class="card-front">${createCardSVG(card)}</div>
+    </div>
+  `;
+
+  // Compute screen-center as the reveal element's anchor
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+
+  // Start = deck center relative to screen center
+  const deckCenterX = deckRect.left + deckRect.width / 2;
+  const deckCenterY = deckRect.top + deckRect.height / 2;
+  const startX = deckCenterX - cx;
+  const startY = deckCenterY - cy;
+  const startScale = deckRect.width / 200;  // 200px is the reveal card's width
+
+  // End = row slot center relative to screen center
+  const endCenterX = endRect.left + endRect.width / 2;
+  const endCenterY = endRect.top + endRect.height / 2;
+  const endX = endCenterX - cx;
+  const endY = endCenterY - cy;
+  const endScale = endRect.width / 200;
+
+  reveal.style.setProperty("--start-x", startX + "px");
+  reveal.style.setProperty("--start-y", startY + "px");
+  reveal.style.setProperty("--start-scale", startScale.toFixed(3));
+  reveal.style.setProperty("--end-x", endX + "px");
+  reveal.style.setProperty("--end-y", endY + "px");
+  reveal.style.setProperty("--end-scale", endScale.toFixed(3));
+
+  document.body.appendChild(reveal);
+  activeReveal = reveal;
+
+  // When the fly animation completes, finalize: render row card, remove ceremony
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    if (reveal.parentNode) reveal.parentNode.removeChild(reveal);
+    activeReveal = null;
+    revealing = false;
+    render();        // now render with the picked card in its row slot
+  };
+
+  reveal.addEventListener("animationend", (e) => {
+    // The fly animation is on the .reveal-card itself; the flip is on .card-inner.
+    // We listen for fly end (target === reveal).
+    if (e.target === reveal) finish();
+  });
+
+  // Safety net: hard cap at slightly over animation duration
+  setTimeout(finish, 2700);
+}
+
+/* Estimate where the next card in the row will land.
+   If the row has cards, use the last one's right edge + gap.
+   If empty, use the row container's left edge. */
+function predictRowSlotRect(rowEl) {
+  const rowRect = rowEl.getBoundingClientRect();
+  const cards = rowEl.querySelectorAll(".card");
+  const styles = getComputedStyle(rowEl);
+  const gap = parseFloat(styles.gap) || 6;
+
+  // Estimate card size: peek at row CSS or fall back to a sensible default
+  let cardW, cardH;
+  if (cards.length > 0) {
+    const r = cards[cards.length - 1].getBoundingClientRect();
+    cardW = r.width;
+    cardH = r.height;
+    return {
+      left: r.right + gap,
+      top: r.top,
+      width: cardW,
+      height: cardH
+    };
+  }
+
+  // Empty row — calculate what flex:1 would size to
+  const padL = parseFloat(styles.paddingLeft) || 0;
+  const padR = parseFloat(styles.paddingRight) || 0;
+  const innerW = rowRect.width - padL - padR;
+  const totalGap = gap * 9;     // 10 cards = 9 gaps
+  cardW = Math.min((innerW - totalGap) / 10, 110);
+  cardH = cardW * 1.5;          // aspect-ratio 2/3
+  return {
+    left: rowRect.left + padL,
+    top: rowRect.top + (rowRect.height - cardH) / 2,
+    width: cardW,
+    height: cardH
+  };
+}
+
+/* Re-render only the deck stack (used immediately after a pick,
+   before the ceremony finishes and the row card appears) */
+function renderDeckOnly() {
+  const deckDiv = document.getElementById("deck");
+  deckDiv.innerHTML = "";
+  const stackPreview = remainingDeck.slice(0, 3).reverse();
+  stackPreview.forEach(card => {
+    const cardEl = createCardElement(card, false, false);
+    deckDiv.appendChild(cardEl);
+  });
+}
+
+/* Skip the current reveal: jump to final state immediately */
+function skipReveal() {
+  if (!revealing || !activeReveal) return;
+  // Removing the ceremony triggers finish() via the safety net,
+  // but we want it instant — call finish manually by dispatching animationend.
+  activeReveal.classList.add("skip");
+  // The animationend listener won't fire because we cancelled the animation.
+  // So we manually clean up:
+  if (activeReveal.parentNode) activeReveal.parentNode.removeChild(activeReveal);
+  activeReveal = null;
+  revealing = false;
   render();
 }
+
+// Tap anywhere during a reveal to skip
+document.addEventListener("click", (e) => {
+  if (!revealing) return;
+  // Don't skip if the user clicked a control (Shuffle/Reset/Options/fullscreen)
+  if (e.target.closest(".btn, .fs-toggle, .modal-content")) return;
+  skipReveal();
+}, true);  // capture phase so we can intercept before child handlers
 
 function resetDeck() {
   createDeck();
@@ -192,8 +348,8 @@ function render() {
   });
 
   pickedCards.forEach(card => {
-    const isJustPicked = card.id === lastPickedCardId;
-    const cardEl = createCardElement(card, true, isJustPicked);
+    // The ceremony already revealed the card; row entry should be instant.
+    const cardEl = createCardElement(card, true, false);
     (card.suit === "hearts" ? heartsDiv : spadesDiv).appendChild(cardEl);
   });
 }
