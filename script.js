@@ -83,15 +83,18 @@ function shuffleDeck() {
       .forEach(c => c.classList.add("shuffle"));
   }
 
-  startRiffle(() => {
-    // Riffle finished — actually shuffle the array and switch to deck mode
-    for (let i = remainingDeck.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
+  startRiffle({
+    onShuffleArrayPoint: () => {
+      // Halfway through the ceremony, do the actual shuffle and pre-render deck mode.
+      // Page is hidden by .shuffle-active so the visual swap is invisible.
+      for (let i = remainingDeck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
+      }
+      lastPickedCardId = null;
+      mode = "deck";
+      render();
     }
-    lastPickedCardId = null;
-    mode = "deck";
-    render();
   });
 }
 
@@ -100,7 +103,7 @@ function shuffleDeck() {
 ========================= */
 let shuffling = false;
 
-function startRiffle(onComplete) {
+function startRiffle(opts) {
   shuffling = true;
   document.body.classList.add("shuffle-active");
 
@@ -111,9 +114,8 @@ function startRiffle(onComplete) {
   const cy = window.innerHeight / 2;
   const enterX = (deckRect.left + deckRect.width / 2) - cx;
   const enterY = (deckRect.top + deckRect.height / 2) - cy;
-  const enterScale = deckRect.width / 110;  // 110 = riffle card CSS width
+  const enterScale = deckRect.width / 110;
 
-  // Build stage with a group wrapper that handles the corner→center→corner motion
   const stage = document.createElement("div");
   stage.className = "shuffle-stage";
   const group = document.createElement("div");
@@ -126,17 +128,15 @@ function startRiffle(onComplete) {
 
   const TOTAL_CARDS = 20;
   const HALF = TOTAL_CARDS / 2;
-  const SPLIT_DISTANCE = 70;     // px each half slides apart
-  const RIFFLE_DURATION_PCT = 0.25;  // 25% of 2.2s = 550ms for the interleave staggers
+  const SPLIT_DISTANCE = 70;
+  const RIFFLE_DURATION_PCT = 0.25;
   const totalAnimMs = 2200;
   const riffleWindowMs = totalAnimMs * RIFFLE_DURATION_PCT;
-  const STAGGER_MS = riffleWindowMs / TOTAL_CARDS;  // ~27ms between each card's flick
+  const STAGGER_MS = riffleWindowMs / TOTAL_CARDS;
 
   for (let i = 0; i < TOTAL_CARDS; i++) {
     const card = document.createElement("div");
     card.className = "riffle-card";
-
-    // Alternating left/right halves for the interleave appearance
     const isLeftHalf = i % 2 === 0;
     const halfIndex = Math.floor(i / 2);
     const splitX = isLeftHalf ? -SPLIT_DISTANCE : SPLIT_DISTANCE;
@@ -146,26 +146,25 @@ function startRiffle(onComplete) {
     card.style.setProperty("--split-x", splitX + "px");
     card.style.setProperty("--final-y", finalY.toFixed(2) + "px");
     card.style.setProperty("--mid-rot", midRot.toFixed(2) + "deg");
-
-    // Stagger delay only for visual effect — NEGATIVE delay so they all stay in sync
-    // with the parent group timeline. Each card lags slightly behind, creating the riffle.
-    // Use small positive delays — within the parent group's static window.
     card.style.setProperty("--delay", (i * STAGGER_MS).toFixed(0) + "ms");
-
-    // Stack order: bottom of stack first, alternating halves
     card.style.zIndex = i;
-
     group.appendChild(card);
   }
 
-  // Total runtime = group animation length + max card delay
   const totalDuration = totalAnimMs + (TOTAL_CARDS - 1) * STAGGER_MS + 100;
+
+  // Mid-ceremony, do the array shuffle and pre-render the deck mode while
+  // the page is hidden behind the ceremony. By the time the ceremony returns
+  // to the corner, the real deck is already in place underneath.
+  const shufflePoint = totalAnimMs * 0.6;  // 60% in, while merged stack is settled
+  setTimeout(() => {
+    if (opts && opts.onShuffleArrayPoint) opts.onShuffleArrayPoint();
+  }, shufflePoint);
 
   setTimeout(() => {
     if (stage.parentNode) stage.parentNode.removeChild(stage);
     document.body.classList.remove("shuffle-active");
     shuffling = false;
-    if (onComplete) onComplete();
   }, totalDuration);
 }
 

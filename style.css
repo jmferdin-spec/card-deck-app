@@ -349,8 +349,13 @@ body {
   }
 }
 
-/* Hide the real deck during shuffle for cleaner visual */
+/* Hide everything else during shuffle for a clean stage */
 .shuffle-active #deck { opacity: 0; transition: opacity 0.15s ease; }
+.shuffle-active main.page {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
 
 /* =========================
    REVEAL CEREMONY
