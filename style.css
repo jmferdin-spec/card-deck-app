@@ -143,10 +143,15 @@ body {
   box-shadow: var(--shadow-soft);
 }
 
-/* BACK = visible by default (no rotation) */
+/* BACK = visible by default (no rotation)
+   We use breakpoint-specific images instead of one large image, because
+   browsers do a poor job downscaling 1024px artwork to 140px at runtime. */
 .card-back {
-  background: url("./assets/back.jpg") center / cover no-repeat;
-  background-color: var(--navy-deep); /* fallback */
+  background-image: url("./assets/back-sm.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: var(--navy-deep);
   border: 1px solid rgba(200, 208, 220, 0.15);
 }
 
@@ -271,7 +276,10 @@ body {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
 }
 .reveal-card .card-back {
-  background: url("./assets/back.jpg") center / cover no-repeat;
+  background-image: url("./assets/back-lg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   background-color: var(--navy-deep);
   border: 1px solid rgba(200, 208, 220, 0.25);
 }
@@ -548,6 +556,7 @@ body.is-fullscreen .fs-toggle .fs-icon-exit  { display: inline; }
   .card { width: 80px; height: 120px; }
   .deck { width: 125px; height: 178px; }
   .deck .card { width: 125px; height: 178px; }
+  .deck .card .card-back { background-image: url("./assets/back-md.jpg"); }
   .row { gap: 6px; }
   .row .card { max-width: 100px; }
 }
@@ -558,6 +567,7 @@ body.is-fullscreen .fs-toggle .fs-icon-exit  { display: inline; }
   .card { width: 90px; height: 135px; }
   .deck { width: 140px; height: 200px; }
   .deck .card { width: 140px; height: 200px; }
+  .deck .card .card-back { background-image: url("./assets/back-md.jpg"); }
   .row { gap: 8px; }
   .row .card { max-width: 110px; }
 }
