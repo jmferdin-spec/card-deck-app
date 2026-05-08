@@ -2,6 +2,45 @@
    LDO CARD APP
 ========================= */
 
+/* =========================
+   PERSISTENT STORAGE
+   Wraps localStorage so we never crash if it's unavailable
+   (Safari private mode, certain WebViews, etc.)
+========================= */
+const STORAGE_KEY = "ldo-cards-v1";
+
+function loadStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    return JSON.parse(raw) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveStorage(data) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) { /* ignore quota / disabled */ }
+}
+
+function persistSettings() {
+  const data = loadStorage();
+  data.settings = {
+    selectedThemes: selectedThemes,
+    topSuit: topSuit,
+    soundsOn: soundsOn
+  };
+  saveStorage(data);
+}
+
+function persistSessions() {
+  const data = loadStorage();
+  data.sessions = sessionHistory;
+  saveStorage(data);
+}
+
 const values = ["A","2","3","4","5","6","7","8","9","10"];
 const suits  = ["hearts", "spades"];
 
@@ -66,8 +105,16 @@ let pendingTopSuit = "hearts";
 let soundsOn = true;
 let pendingSoundsOn = true;
 
-// Pick history (in order drawn, never trimmed except on reset)
+// Pick history for the CURRENT session (in draw order). Cleared on shuffle/reset.
 let pickHistory = [];
+
+// SAVED sessions — persisted to storage, capped at 20.
+// Each entry: { id, ts, picks: [...] }
+let sessionHistory = [];
+
+// View state for the history modal: "list" or session ID for detail view
+let historyView = "list";
+const MAX_SESSIONS = 20;
 
 /* =========================
    DECK BUILDING
@@ -196,9 +243,8 @@ function pickCard() {
 
   const card = remainingDeck.shift();
   pickedCards.push(card);
-  pickHistory.push(card);     // permanent record until reset
+  pickHistory.push(card);     // current session record
   lastPickedCardId = card.id;
-  updateHistoryBadge();
 
   playSound("flip");
 
@@ -393,6 +439,20 @@ function resetBackdropClick(e) {
 }
 
 function doReset() {
+  // If there were picks in this session, save it before clearing
+  if (pickHistory.length > 0) {
+    sessionHistory.unshift({
+      id: Date.now(),
+      ts: Date.now(),
+      picks: pickHistory.slice()
+    });
+    // Cap at MAX_SESSIONS (most recent first)
+    if (sessionHistory.length > MAX_SESSIONS) {
+      sessionHistory = sessionHistory.slice(0, MAX_SESSIONS);
+    }
+    persistSessions();
+  }
+
   createDeck();
   pickedCards = [];
   pickHistory = [];
@@ -608,6 +668,7 @@ function applyThemes() {
   applySuitOrder();
   updateLabels();
   render();
+  persistSettings();
   closeOptions();
 }
 
@@ -679,6 +740,7 @@ function updateSoundToggleUI() {
    PICK HISTORY
 ========================= */
 function openHistory() {
+  historyView = "list";
   renderHistoryList();
   document.getElementById("historyModal").classList.remove("hidden");
 }
@@ -694,34 +756,120 @@ function historyBackdropClick(e) {
 function updateHistoryBadge() {
   const badge = document.getElementById("historyBadge");
   if (!badge) return;
-  if (pickHistory.length === 0) {
+  if (sessionHistory.length === 0) {
     badge.hidden = true;
   } else {
-    badge.textContent = pickHistory.length;
+    badge.textContent = sessionHistory.length;
     badge.hidden = false;
   }
 }
 
+/* Format a timestamp into "May 8, 2:30 PM" */
+function formatSessionTime(ts) {
+  const d = new Date(ts);
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const month = months[d.getMonth()];
+  const day = d.getDate();
+  let hours = d.getHours();
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12 || 12;
+  return `${month} ${day}, ${hours}:${mins} ${ampm}`;
+}
+
+/* Render the list view: each saved session as a row */
 function renderHistoryList() {
+  historyView = "list";
+  const titleEl = document.querySelector("#historyModal .history-modal h3");
   const list = document.getElementById("historyList");
+  const backBtn = document.getElementById("historyBackBtn");
+
+  if (titleEl) titleEl.textContent = "Pick History";
+  if (backBtn) backBtn.hidden = true;
   if (!list) return;
 
-  if (pickHistory.length === 0) {
-    list.innerHTML = '<p class="history-empty">No cards drawn yet.</p>';
+  if (sessionHistory.length === 0) {
+    list.innerHTML = '<p class="history-empty">No sessions yet. Draw some cards and hit Reset to save a session here.</p>';
     return;
   }
 
-  const rows = pickHistory.map((card, i) => {
-    const symbol = card.suit === "hearts" ? "♥" : "♠";
+  // Sessions are stored newest-first; number them by chronological order so
+  // the oldest session in the list is the user's session #1.
+  const total = sessionHistory.length;
+  const rows = sessionHistory.map((s, idx) => {
+    const seq = total - idx;  // newest = highest number
     return `
-      <div class="history-row">
-        <span class="seq">#${i + 1}</span>
-        <span class="label ${card.suit}">${card.value}<span class="suit-symbol">${symbol}</span></span>
-      </div>
+      <button type="button" class="history-row session-row" onclick="openHistorySession(${s.id})">
+        <span class="seq">#${seq}</span>
+        <span class="session-info">
+          <span class="session-time">${formatSessionTime(s.ts)}</span>
+          <span class="session-count">${s.picks.length} card${s.picks.length === 1 ? "" : "s"}</span>
+        </span>
+        <span class="chev">›</span>
+      </button>
     `;
   }).join("");
 
   list.innerHTML = rows;
+}
+
+/* Render the detail view: one session, split by suit, in draw order */
+function openHistorySession(sessionId) {
+  const session = sessionHistory.find(s => s.id === sessionId);
+  if (!session) return;
+
+  historyView = sessionId;
+  const titleEl = document.querySelector("#historyModal .history-modal h3");
+  const list = document.getElementById("historyList");
+  const backBtn = document.getElementById("historyBackBtn");
+
+  // Find the position (#) of this session
+  const total = sessionHistory.length;
+  const idx = sessionHistory.findIndex(s => s.id === sessionId);
+  const seq = total - idx;
+
+  if (titleEl) titleEl.textContent = `#${seq} • ${formatSessionTime(session.ts)}`;
+  if (backBtn) backBtn.hidden = false;
+
+  // Split picks by suit, preserving draw order within each suit
+  const heartsPicks = session.picks.filter(c => c.suit === "hearts");
+  const spadesPicks = session.picks.filter(c => c.suit === "spades");
+
+  const renderSuitGroup = (label, picks, suitClass) => {
+    const symbol = suitClass === "hearts" ? "♥" : "♠";
+    if (picks.length === 0) {
+      return `
+        <div class="suit-group">
+          <h4 class="suit-group-title ${suitClass}">${label} <span class="suit-symbol">${symbol}</span></h4>
+          <p class="suit-group-empty">None drawn</p>
+        </div>
+      `;
+    }
+    const items = picks.map((c, i) => `
+      <div class="card-pill ${suitClass}">
+        <span class="pill-seq">${i + 1}</span>
+        <span class="pill-value">${c.value}<span class="suit-symbol">${symbol}</span></span>
+      </div>
+    `).join("");
+    return `
+      <div class="suit-group">
+        <h4 class="suit-group-title ${suitClass}">${label} <span class="suit-symbol">${symbol}</span> <span class="suit-group-count">(${picks.length})</span></h4>
+        <div class="card-pills">${items}</div>
+      </div>
+    `;
+  };
+
+  // Order by current top-suit preference for consistency with the live view
+  const top = topSuit;
+  const html = top === "hearts"
+    ? renderSuitGroup("Hearts", heartsPicks, "hearts") + renderSuitGroup("Spades", spadesPicks, "spades")
+    : renderSuitGroup("Spades", spadesPicks, "spades") + renderSuitGroup("Hearts", heartsPicks, "hearts");
+
+  list.innerHTML = html;
+}
+
+function backToHistoryList() {
+  renderHistoryList();
 }
 
 function updateLabels() {
@@ -737,9 +885,33 @@ function updateLabels() {
 /* =========================
    INIT
 ========================= */
+
+// Load any persisted settings + history before building UI
+(function loadPersistedState() {
+  const data = loadStorage();
+  if (data.settings) {
+    if (data.settings.selectedThemes) {
+      selectedThemes = Object.assign(selectedThemes, data.settings.selectedThemes);
+    }
+    if (data.settings.topSuit === "hearts" || data.settings.topSuit === "spades") {
+      topSuit = data.settings.topSuit;
+      pendingTopSuit = topSuit;
+    }
+    if (typeof data.settings.soundsOn === "boolean") {
+      soundsOn = data.settings.soundsOn;
+      pendingSoundsOn = soundsOn;
+    }
+  }
+  if (Array.isArray(data.sessions)) {
+    sessionHistory = data.sessions;
+  }
+})();
+
 createDeck();
 initThemes();
 updateLabels();
+applySuitOrder();        // apply persisted top-row choice
+updateHistoryBadge();    // reflect persisted session count
 render();
 
 document.getElementById("deck").addEventListener("click", pickCard);
