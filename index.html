@@ -3,13 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#102650">
 
   <!-- Force revalidation so updates show up without manual cache-busting -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <title>LDO Sports & Pools — Card Deck</title>
+  <title>LDO Sports & Pools</title>
+
+  <!-- Favicons -->
+  <link rel="icon" href="./assets/icons/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LDO Cards">
 
   <!-- Auto cache-busting: appends ?v=<lastmod> to CSS so updates show up immediately. -->
   <script>
@@ -33,14 +47,24 @@
 </head>
 <body>
 
-  <!-- FULLSCREEN TOGGLE (top-right) -->
-  <button id="fsToggle" class="fs-toggle" onclick="toggleFullscreen()" aria-label="Toggle fullscreen" title="Toggle fullscreen"
-          style="position:fixed; top:12px; right:12px; z-index:60;">
-    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path class="fs-icon-enter" d="M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5"/>
-      <path class="fs-icon-exit" d="M9 4v5H4 M20 9h-5V4 M4 15h5v5 M15 20v-5h5"/>
-    </svg>
-  </button>
+  <!-- TOP-RIGHT TOOLBAR -->
+  <div class="top-toolbar">
+    <button id="historyToggle" class="icon-btn" onclick="openHistory()" aria-label="Pick history" title="Pick history"
+            style="position:relative;">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <polyline points="12,7 12,12 15,14"/>
+      </svg>
+      <span id="historyBadge" class="icon-badge" hidden>0</span>
+    </button>
+
+    <button id="fsToggle" class="icon-btn" onclick="toggleFullscreen()" aria-label="Toggle fullscreen" title="Toggle fullscreen">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path class="fs-icon-enter" d="M4 9V4h5 M15 4h5v5 M20 15v5h-5 M9 20H4v-5"/>
+        <path class="fs-icon-exit" d="M9 4v5H4 M20 9h-5V4 M4 15h5v5 M15 20v-5h5"/>
+      </svg>
+    </button>
+  </div>
 
   <main class="page">
 
@@ -93,9 +117,42 @@
         </div>
       </div>
 
+      <div class="field">
+        <label>Sounds</label>
+        <div class="suit-toggle" role="radiogroup" aria-label="Sound effects">
+          <button type="button" class="suit-toggle-btn" data-sound="on"  onclick="setSoundChoice(true)">On</button>
+          <button type="button" class="suit-toggle-btn" data-sound="off" onclick="setSoundChoice(false)">Off</button>
+        </div>
+      </div>
+
       <div class="modal-actions">
         <button class="btn" onclick="closeOptions()">Cancel</button>
         <button class="btn btn-primary" onclick="applyThemes()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY PANEL -->
+  <div id="historyModal" class="modal hidden" onclick="historyBackdropClick(event)">
+    <div class="modal-content history-modal">
+      <h3>Pick History</h3>
+      <div id="historyList" class="history-list">
+        <p class="history-empty">No cards drawn yet.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="closeHistory()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESET CONFIRMATION -->
+  <div id="resetModal" class="modal hidden" onclick="resetBackdropClick(event)">
+    <div class="modal-content">
+      <h3>Reset Deck?</h3>
+      <p class="confirm-text">This will clear all picked cards and return all 20 cards to the grid. Continue?</p>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeResetConfirm()">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmReset()">Reset</button>
       </div>
     </div>
   </div>

@@ -62,6 +62,13 @@ let topSuit = "hearts";
 // Pending value during modal session — only applied on Apply
 let pendingTopSuit = "hearts";
 
+// Sound effects
+let soundsOn = true;
+let pendingSoundsOn = true;
+
+// Pick history (in order drawn, never trimmed except on reset)
+let pickHistory = [];
+
 /* =========================
    DECK BUILDING
 ========================= */
@@ -102,6 +109,8 @@ function shuffleDeck() {
       render();
     }
   });
+
+  playSound("shuffle");
 }
 
 /* =========================
@@ -187,7 +196,11 @@ function pickCard() {
 
   const card = remainingDeck.shift();
   pickedCards.push(card);
+  pickHistory.push(card);     // permanent record until reset
   lastPickedCardId = card.id;
+  updateHistoryBadge();
+
+  playSound("flip");
 
   // Re-render the deck immediately so its size shrinks if this was the last card.
   // We delay rendering the picked card into the row until the ceremony finishes.
@@ -357,10 +370,35 @@ document.addEventListener("click", (e) => {
 }, true);  // capture phase so we can intercept before child handlers
 
 function resetDeck() {
+  // If nothing's been drawn yet, just reset silently
+  if (pickHistory.length === 0 && mode === "grid") {
+    doReset();
+    return;
+  }
+  // Otherwise confirm
+  document.getElementById("resetModal").classList.remove("hidden");
+}
+
+function confirmReset() {
+  closeResetConfirm();
+  doReset();
+}
+
+function closeResetConfirm() {
+  document.getElementById("resetModal").classList.add("hidden");
+}
+
+function resetBackdropClick(e) {
+  if (e.target.id === "resetModal") closeResetConfirm();
+}
+
+function doReset() {
   createDeck();
   pickedCards = [];
+  pickHistory = [];
   lastPickedCardId = null;
   mode = "grid";
+  updateHistoryBadge();
   render();
 }
 
@@ -547,6 +585,10 @@ function openOptions() {
   pendingTopSuit = topSuit;
   updateSuitToggleUI();
 
+  // Sync the sound toggle
+  pendingSoundsOn = soundsOn;
+  updateSoundToggleUI();
+
   document.getElementById("optionsModal").classList.remove("hidden");
 }
 
@@ -562,6 +604,7 @@ function applyThemes() {
   selectedThemes.hearts = document.getElementById("heartsTheme").value;
   selectedThemes.spades = document.getElementById("spadesTheme").value;
   topSuit = pendingTopSuit;
+  soundsOn = pendingSoundsOn;
   applySuitOrder();
   updateLabels();
   render();
@@ -586,6 +629,101 @@ function applySuitOrder() {
   document.body.classList.toggle("spades-on-top", topSuit === "spades");
 }
 
+/* =========================
+   SOUND EFFECTS
+   Audio files are optional. Drop these into ./assets/sounds/:
+     - shuffle.mp3   — plays on Shuffle
+     - flip.mp3      — plays on each card pick
+
+   Free CC0 sounds you can use:
+     Pixabay   — https://pixabay.com/sound-effects/search/card-shuffle/
+     Freesound — https://freesound.org/search/?q=card+shuffle&f=license:%22Creative+Commons+0%22
+
+   If a file is missing, the sound silently fails — the app still works.
+========================= */
+const SOUND_FILES = {
+  shuffle: "./assets/sounds/shuffle.mp3",
+  flip:    "./assets/sounds/flip.mp3"
+};
+const audioCache = {};
+
+function playSound(name) {
+  if (!soundsOn) return;
+  const path = SOUND_FILES[name];
+  if (!path) return;
+  try {
+    // Reuse a single Audio element per sound; clone for overlapping plays
+    if (!audioCache[name]) {
+      audioCache[name] = new Audio(path);
+      audioCache[name].preload = "auto";
+    }
+    const a = audioCache[name].cloneNode();
+    a.volume = 0.5;
+    a.play().catch(() => {});  // browsers may block autoplay; ignore
+  } catch (e) { /* file missing or audio unsupported */ }
+}
+
+function setSoundChoice(on) {
+  pendingSoundsOn = on;
+  updateSoundToggleUI();
+}
+
+function updateSoundToggleUI() {
+  document.querySelectorAll('.suit-toggle-btn[data-sound]').forEach(btn => {
+    const isOn = btn.dataset.sound === "on";
+    btn.classList.toggle("active", isOn === pendingSoundsOn);
+  });
+}
+
+/* =========================
+   PICK HISTORY
+========================= */
+function openHistory() {
+  renderHistoryList();
+  document.getElementById("historyModal").classList.remove("hidden");
+}
+
+function closeHistory() {
+  document.getElementById("historyModal").classList.add("hidden");
+}
+
+function historyBackdropClick(e) {
+  if (e.target.id === "historyModal") closeHistory();
+}
+
+function updateHistoryBadge() {
+  const badge = document.getElementById("historyBadge");
+  if (!badge) return;
+  if (pickHistory.length === 0) {
+    badge.hidden = true;
+  } else {
+    badge.textContent = pickHistory.length;
+    badge.hidden = false;
+  }
+}
+
+function renderHistoryList() {
+  const list = document.getElementById("historyList");
+  if (!list) return;
+
+  if (pickHistory.length === 0) {
+    list.innerHTML = '<p class="history-empty">No cards drawn yet.</p>';
+    return;
+  }
+
+  const rows = pickHistory.map((card, i) => {
+    const symbol = card.suit === "hearts" ? "♥" : "♠";
+    return `
+      <div class="history-row">
+        <span class="seq">#${i + 1}</span>
+        <span class="label ${card.suit}">${card.value}<span class="suit-symbol">${symbol}</span></span>
+      </div>
+    `;
+  }).join("");
+
+  list.innerHTML = rows;
+}
+
 function updateLabels() {
   const heartsName = logos.find(l => l.id === selectedThemes.hearts)?.name;
   const spadesName = logos.find(l => l.id === selectedThemes.spades)?.name;
@@ -606,9 +744,13 @@ render();
 
 document.getElementById("deck").addEventListener("click", pickCard);
 
-// Esc closes the modal
+// Esc closes any open modal
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeOptions();
+  if (e.key === "Escape") {
+    closeOptions();
+    closeHistory();
+    closeResetConfirm();
+  }
 });
 
 /* =========================
