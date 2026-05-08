@@ -75,17 +75,16 @@ function shuffleDeck() {
     alert("Reset the deck before shuffling — you have cards already drawn.");
     return;
   }
+  if (revealing || shuffling) return;
 
-  // In grid mode, animate the suit-row cards. In deck mode, animate the deck stack.
+  // In grid mode, give the suit-row cards a quick wiggle before the riffle starts
   if (mode === "grid") {
     document.querySelectorAll("#hearts .card, #spades .card")
       .forEach(c => c.classList.add("shuffle"));
-  } else {
-    document.querySelectorAll("#deck .card")
-      .forEach(c => c.classList.add("shuffle"));
   }
 
-  setTimeout(() => {
+  startRiffle(() => {
+    // Riffle finished — actually shuffle the array and switch to deck mode
     for (let i = remainingDeck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
@@ -93,7 +92,81 @@ function shuffleDeck() {
     lastPickedCardId = null;
     mode = "deck";
     render();
-  }, 450);
+  });
+}
+
+/* =========================
+   RIFFLE SHUFFLE CEREMONY
+========================= */
+let shuffling = false;
+
+function startRiffle(onComplete) {
+  shuffling = true;
+  document.body.classList.add("shuffle-active");
+
+  // Where the deck currently sits (start/end point for group motion)
+  const deckEl = document.getElementById("deck");
+  const deckRect = deckEl.getBoundingClientRect();
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const enterX = (deckRect.left + deckRect.width / 2) - cx;
+  const enterY = (deckRect.top + deckRect.height / 2) - cy;
+  const enterScale = deckRect.width / 110;  // 110 = riffle card CSS width
+
+  // Build stage with a group wrapper that handles the corner→center→corner motion
+  const stage = document.createElement("div");
+  stage.className = "shuffle-stage";
+  const group = document.createElement("div");
+  group.className = "stage-group";
+  group.style.setProperty("--enter-x", enterX + "px");
+  group.style.setProperty("--enter-y", enterY + "px");
+  group.style.setProperty("--enter-scale", enterScale.toFixed(3));
+  stage.appendChild(group);
+  document.body.appendChild(stage);
+
+  const TOTAL_CARDS = 20;
+  const HALF = TOTAL_CARDS / 2;
+  const SPLIT_DISTANCE = 70;     // px each half slides apart
+  const RIFFLE_DURATION_PCT = 0.25;  // 25% of 2.2s = 550ms for the interleave staggers
+  const totalAnimMs = 2200;
+  const riffleWindowMs = totalAnimMs * RIFFLE_DURATION_PCT;
+  const STAGGER_MS = riffleWindowMs / TOTAL_CARDS;  // ~27ms between each card's flick
+
+  for (let i = 0; i < TOTAL_CARDS; i++) {
+    const card = document.createElement("div");
+    card.className = "riffle-card";
+
+    // Alternating left/right halves for the interleave appearance
+    const isLeftHalf = i % 2 === 0;
+    const halfIndex = Math.floor(i / 2);
+    const splitX = isLeftHalf ? -SPLIT_DISTANCE : SPLIT_DISTANCE;
+    const finalY = (halfIndex - HALF / 2) * 0.5;
+    const midRot = isLeftHalf ? -3 - Math.random() * 2 : 3 + Math.random() * 2;
+
+    card.style.setProperty("--split-x", splitX + "px");
+    card.style.setProperty("--final-y", finalY.toFixed(2) + "px");
+    card.style.setProperty("--mid-rot", midRot.toFixed(2) + "deg");
+
+    // Stagger delay only for visual effect — NEGATIVE delay so they all stay in sync
+    // with the parent group timeline. Each card lags slightly behind, creating the riffle.
+    // Use small positive delays — within the parent group's static window.
+    card.style.setProperty("--delay", (i * STAGGER_MS).toFixed(0) + "ms");
+
+    // Stack order: bottom of stack first, alternating halves
+    card.style.zIndex = i;
+
+    group.appendChild(card);
+  }
+
+  // Total runtime = group animation length + max card delay
+  const totalDuration = totalAnimMs + (TOTAL_CARDS - 1) * STAGGER_MS + 100;
+
+  setTimeout(() => {
+    if (stage.parentNode) stage.parentNode.removeChild(stage);
+    document.body.classList.remove("shuffle-active");
+    shuffling = false;
+    if (onComplete) onComplete();
+  }, totalDuration);
 }
 
 /* =========================

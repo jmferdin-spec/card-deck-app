@@ -202,6 +202,29 @@ body {
 .card.shuffle .card-inner {
   animation: shuffle 0.4s ease;
 }
+/* Animate around whatever rotation the card-inner already has.
+   For flipped cards the parent .card.flipped sets rotateY(180deg),
+   but our keyframe transforms override it. Use two keyframe sets: */
+.card.shuffle:not(.flipped) .card-inner {
+  animation-name: shuffle-back;
+}
+.card.shuffle.flipped .card-inner {
+  animation-name: shuffle-face;
+}
+@keyframes shuffle-back {
+  0%   { transform: translateY(0) rotate(0deg) rotateY(0deg); }
+  25%  { transform: translateY(-6px) rotate(-3deg) rotateY(0deg); }
+  50%  { transform: translateY(0) rotate(3deg) rotateY(0deg); }
+  75%  { transform: translateY(-3px) rotate(-1deg) rotateY(0deg); }
+  100% { transform: translateY(0) rotate(0deg) rotateY(0deg); }
+}
+@keyframes shuffle-face {
+  0%   { transform: translateY(0) rotate(0deg) rotateY(180deg); }
+  25%  { transform: translateY(-6px) rotate(-3deg) rotateY(180deg); }
+  50%  { transform: translateY(0) rotate(3deg) rotateY(180deg); }
+  75%  { transform: translateY(-3px) rotate(-1deg) rotateY(180deg); }
+  100% { transform: translateY(0) rotate(0deg) rotateY(180deg); }
+}
 @keyframes shuffle {
   0%   { transform: translateY(0) rotate(0deg); }
   25%  { transform: translateY(-6px) rotate(-3deg); }
@@ -227,6 +250,107 @@ body {
 /* Cards already in suit rows on re-render: no animation */
 .card.no-anim .card-inner { transition: none !important; }
 .card.no-anim             { animation: none !important; }
+
+/* =========================
+   RIFFLE SHUFFLE CEREMONY
+   The whole deck moves together except during the interleave phase,
+   where individual cards flick into the merged stack one by one.
+========================= */
+.shuffle-stage {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 80;
+}
+
+/* The "stage" group moves the whole deck (corner → center → split → recombine → corner)
+   It uses a child wrapper that does the corner-flight portion only.
+   The split & recombine happens via per-card --split-x animation that overlays the group motion. */
+.shuffle-stage .stage-group {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0; height: 0;
+  /* Group-level motion: in from corner, hold center, out to corner */
+  animation: stage-fly 2.2s cubic-bezier(0.4, 0, 0.2, 1) both;
+  --enter-x: 0px;
+  --enter-y: 0px;
+  --enter-scale: 0.5;
+}
+
+@keyframes stage-fly {
+  0% {
+    transform: translate(var(--enter-x), var(--enter-y)) scale(var(--enter-scale));
+    opacity: 0;
+  }
+  10% { opacity: 1; }
+  18% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  82% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--enter-x), var(--enter-y)) scale(var(--enter-scale));
+    opacity: 0;
+  }
+}
+
+/* Individual cards inside the stage do the split + interleave motion */
+.shuffle-stage .riffle-card {
+  position: absolute;
+  top: 0; left: 0;
+  width: 110px;
+  height: 160px;
+  margin-left: -55px;
+  margin-top: -80px;
+  background-image: url("./assets/back-md.jpg");
+  background-size: cover;
+  background-position: center;
+  background-color: var(--navy-deep);
+  border: 1px solid rgba(200, 208, 220, 0.25);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transform-origin: center center;
+  --split-x: 0px;
+  --final-y: 0px;
+  --mid-rot: 0deg;
+  /* Card-level animation runs only during the riffle window of the parent's lifecycle.
+     Total: 2.2s. Split begins around 25%, interleave 35–60%, settled 60–80%. */
+  animation: riffle-card 2.2s ease-in-out both;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* Per-card timeline (matches stage-fly window):
+   0–18%   = stacked at center (group is flying in; card is just sitting still)
+   18%     = positioned at center
+   30%     = split apart into half position
+   38%     = lifts off its half (the riffle "flick")
+   55%     = merges into combined stack
+   60–82%  = stack still
+   100%    = back to center for group exit (so card sits in stack as group flies out)
+*/
+@keyframes riffle-card {
+  0%, 18% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  30% {
+    transform: translate(var(--split-x), 0) rotate(0deg);
+  }
+  38% {
+    transform:
+      translate(calc(var(--split-x) * 0.55), -10px)
+      rotate(var(--mid-rot));
+  }
+  55%, 100% {
+    transform: translate(0, var(--final-y)) rotate(0deg);
+  }
+}
+
+/* Hide the real deck during shuffle for cleaner visual */
+.shuffle-active #deck { opacity: 0; transition: opacity 0.15s ease; }
 
 /* =========================
    REVEAL CEREMONY
