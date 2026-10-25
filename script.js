@@ -129,6 +129,35 @@ function createDeck() {
   remainingDeck = [...fullDeck];
 }
 
+/* =========================
+   SECURE RANDOMNESS
+   Uses the browser's cryptographic RNG instead of Math.random().
+   Rejection sampling removes modulo bias so every index is exactly equally likely.
+========================= */
+function secureRandomInt(max) {
+  // Fallback for very old browsers without Web Crypto
+  if (!(window.crypto && window.crypto.getRandomValues)) {
+    return Math.floor(Math.random() * max);
+  }
+  const buf = new Uint32Array(1);
+  const limit = Math.floor(0x100000000 / max) * max; // largest multiple of max below 2^32
+  let x;
+  do {
+    window.crypto.getRandomValues(buf);
+    x = buf[0];
+  } while (x >= limit);                               // reject the biased tail
+  return x % max;
+}
+
+// Fisher-Yates shuffle, in place, driven by the crypto RNG
+function secureShuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = secureRandomInt(i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function shuffleDeck() {
   // Block shuffle mid-draw — user must Reset first to avoid losing picked cards
   if (pickedCards.length > 0) {
@@ -147,10 +176,7 @@ function shuffleDeck() {
     onShuffleArrayPoint: () => {
       // Halfway through the ceremony, do the actual shuffle and pre-render deck mode.
       // Page is hidden by .shuffle-active so the visual swap is invisible.
-      for (let i = remainingDeck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [remainingDeck[i], remainingDeck[j]] = [remainingDeck[j], remainingDeck[i]];
-      }
+      secureShuffle(remainingDeck);
       lastPickedCardId = null;
       mode = "deck";
       render();
